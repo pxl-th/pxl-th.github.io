@@ -1,0 +1,40 @@
+<!doctype html> <html lang=en > <meta charset=UTF-8 > <meta name=viewport  content="width=device-width, initial-scale=1"> <link rel=stylesheet  href="/libs/highlight/styles/github.min.css"> <link rel=stylesheet  href="/css/franklin.css"> <link rel=stylesheet  href="/css/hypertext.css"> <link rel=icon  href="/assets/favicon.png"> <title></title> <header> <nav> <a href="/">> noise reduction</a> | <a href="/software_bugs/main/">software bugs</a> | <a href="/city_bugs/main/">city bugs</a> </nav> </header> <div class=franklin-content ><p>It&#39;s 2022 and you still have to do this...</p> <p>By default Nautilus does not support generating thumbnails for RAW photos. However, they often have embedded preview photos, which can be used as a thumbnail. And it is fast.</p> <ol> <li><p>Install <a href="https://exiv2.org/">exiv2</a></p> </ol> <pre><code class="bash hljs">sudo apt install exiv2</code></pre>
+<ol start=2 >
+<li><p>In <code>~/.local/share/thumbnailers/exiv2.thumbnailer</code> file add following:</p>
+
+</ol>
+<pre><code class="bash hljs">[Thumbnailer Entry]
+Exec=exiv2-thumbnailer %i %o
+MimeType=image/x-sony-arw;image/x-canon-cr2;
+<span class=hljs-comment >#MimeType=image/x-arw;image/x-bay;image/x-canon-cr2;image/x-canon-crw;image/x-cap;image/x-cr2;image/x-crw;image/x-dcr;image/x-dcraw;image/x-dcs;image/x-dng;image/x-drf;image/x-eip;image/x-erf;image/x-fff;image/x-fuji-raf;image/x-iiq;image/x-k25;image/x-kdc;image/x-mef;image/x-minolta-mrw;image/x-mos;image/x-mrw;image/x-nef;image/x-nikon-nef;image/x-nrw;image/x-olympus-orf;image/x-orf;image/x-panasonic-raw;image/x-panasonic-raw2;image/x-pef;image/x-pentax-pef;image/x-ptx;image/x-pxn;image/x-r3d;image/x-raf;image/x-raw;image/x-rw2;image/x-rwl;image/x-rwz;image/x-samsung-srw;image/x-sigma-x3f;image/x-sony-arw;image/x-sony-sr2;image/x-sony-srf;image/x-sr2;image/x-srf;image/x-x3f;image/x-adobe-dng;image/x-portable-pixmap;image/tiff;</span></code></pre>
+<p>If you want more types, use commented line instead.</p>
+<ol start=3 >
+<li><p>In <code>/usr/bin/exiv2-thumbnailer</code> file add following:</p>
+
+</ol>
+<pre><code class="julia hljs"><span class=hljs-comment >#!/bin/bash</span>
+
+fullfile=$<span class=hljs-number >1</span>
+filename=<span class=hljs-string >&quot;${fullfile%.*}&quot;</span>
+
+exiv2 -ep1 -f $<span class=hljs-number >1</span>
+convert ${filename}-preview1.jpg $<span class=hljs-number >2</span>
+rm ${filename}-preview1.jpg</code></pre>
+<p><strong>Note:</strong> <code>convert</code> is needed because Nauilus uses <code>.png</code> for thumbnails.</p>
+<p>Kill Nautilus with <code>nautilus -q</code> and restart it.</p>
+<p>For more info &amp; how to debug: <a href="https://askubuntu.com/questions/1368910/how-to-create-custom-thumbnailers-for-nautilus-nemo-and-caja">link</a></p>
+<div class=page-foot >
+    Anton Smirnov
+    <br/>
+    Contacts:
+    <a href="mailto:tonysmn97@gmail.com">tonysmn97@gmail.com</a>,
+    <a href="https://github.com/pxl-th">github</a>,
+    <a href="https://www.instagram.com/pxl_th/">instagram</a>
+    <br/>
+    If we reduce the noise, we can hear our surroundings better.
+</div>
+</div>
+    
+    
+        <script src="/libs/highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();hljs.configure({tabReplace: '    '});</script>
