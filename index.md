@@ -2,9 +2,8 @@
 
 ~~~
 <iframe
-    width="640" height="360"
-    src="https://www.youtube.com/embed/fhZ9GVfDBlk?si=Y_WA_24bF9GnTb1U&controls=0&mute=1&autoplay=1&loop=1&autopause=0&disablekb=1&playsinline=1&rel=0"
-    frameborder="0" allow="autoplay"></iframe>
+    src="https://player.vimeo.com/video/858397333?muted=1&autoplay=1&loop=1&autopause=0&controls=0"
+    width="640" height="360" frameborder="0" allow=autoplay></iframe>
 ~~~
 
 I'm Anton Smirnov.
