@@ -1,11 +1,11 @@
 /* Simple css to follow the geometry of franklin-content (see franklin.css) */
 
 header {
-  margin-top: 75px;
+  margin-top: 20px;
   position: relative;
   padding-left: 12.5%;
   padding-right: 12.5%;
-  margin-bottom: 50px;
+  margin-bottom: 10px;
 }
 
 /* on wide screens, fix content width to a max value */
