@@ -54,6 +54,16 @@ html {
     FOOT / COPYRIGHT
 ================================================================== */
 
+@font-face {
+  font-family: "Tryzub";
+  src: url("/assets/Tryzub.ttf");
+}
+
+.Tryzub {
+  font-family: "Tryzub";
+  font-size: 100%;
+}
+
 .franklin-content .page-foot a {
   text-decoration: none;
   color: #444;
@@ -202,6 +212,8 @@ td {
 
 .franklin-header a {
   color: #111;
+  display: flex;
+  justify-content: center;
 }
 
 /* ==================================================================
