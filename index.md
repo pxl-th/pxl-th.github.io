@@ -14,14 +14,6 @@ I'm Anton Smirnov. \\
 Live in Ukraine, Kyiv. \\
 Currently work at AMD on various Julia GPU related projects.
 
-Projects
-
-- Pure Julia real-time Neural Radiance Fields:
-    [Nerf.jl](https://github.com/JuliaNeuralGraphics/Nerf.jl)
-
-- AMD GPU programming in Julia:
-    [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl)
-
 Talks
 
 - [JuliaCon 2023](https://youtu.be/wmCra6roZn4?si=jhVBepTqvlvTyaEZ)

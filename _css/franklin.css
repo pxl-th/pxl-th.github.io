@@ -50,6 +50,22 @@ html {
   font-size: 70%;
 }
 
+.navbar {
+  overflow: hidden;
+}
+
+.navbar a {
+  float: left;
+  display: block;
+  padding: 0px 10px;
+  text-decoration: none;
+  text-align: center;
+}
+
+.navbar a:hover {
+  text-decoration: underline;
+}
+
 /* ==================================================================
     FOOT / COPYRIGHT
 ================================================================== */
