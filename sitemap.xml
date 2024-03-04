@@ -20,6 +20,12 @@
     <priority>0.5</priority>
 </url>
 <url>
+    <loc>https://tlienart.github.io/FranklinTemplates.jl/tutorials/gpu/2/index.html</loc>
+    <lastmod>2024-03-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+</url>
+<url>
     <loc>https://tlienart.github.io/FranklinTemplates.jl/posts/posts/index.html</loc>
     <lastmod>2024-03-04</lastmod>
     <changefreq>monthly</changefreq>
