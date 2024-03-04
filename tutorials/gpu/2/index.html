@@ -1,43 +1,80 @@
-<!doctype html> <html lang=en > <meta charset=UTF-8 > <meta name=viewport  content="width=device-width, initial-scale=1"> <link rel=stylesheet  href="/libs/highlight/styles/github.min.css"> <link rel=stylesheet  href="/css/franklin.css"> <link rel=stylesheet  href="/css/hypertext.css"> <link rel=icon  href="/assets/favicon.png"> <title></title> <header class=franklin-header > <div class=navbar > <a class=Tryzub  style="text-decoration:none;" href="https://savelife.in.ua/en/donate-en/#donate-army-card-monthly" target=_blank >A</a> <a href="/">pxl-th</a> <a href="/posts/posts">Posts</a> <a href="/tutorials/intro">Скарбничка знань</a> </div> </header> <div class=franklin-content ><p><strong>Додавання двух масивів</strong></p> <p>Нехай перед нами стоїть задача по-елементного додавання двух масивів. Для початку, створимо два масиви розміром <code>1024</code>, типу <code>Float32</code> заповнені випадковими даними.</p> <pre><code class="julia hljs"><span class=hljs-keyword >using</span> CUDA
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+   <link rel="stylesheet" href="/libs/highlight/styles/github.min.css">
+   
+  <link rel="stylesheet" href="/css/franklin.css">
+<link rel="stylesheet" href="/css/hypertext.css">
+<link rel="icon" href="/assets/favicon.png">
 
-a = CUDA.rand(<span class=hljs-built_in >Float32</span>, <span class=hljs-number >1024</span>^<span class=hljs-number >2</span>)
-b = CUDA.rand(<span class=hljs-built_in >Float32</span>, <span class=hljs-number >1024</span>^<span class=hljs-number >2</span>)</code></pre> <p>GPU-масиви підтримують більшість операцій що й звичайні масиви, тому для обчислення по-елементного додавання достатньо використати оператор <code>.&#43;</code>.</p> <blockquote> <p><strong>Замітка:</strong> крапка перед оператором <code>.&#43;</code> дозволяє застосувати його до кожного елемента масивів та називається broadcast.</p> </blockquote> <pre><code class="julia hljs">y = a .+ b</code></pre>
+   <title></title>  
+</head>
+<body>
+<header class="franklin-header">
+  <div class="navbar">
+    <a
+      class="Tryzub" style="text-decoration:none;"
+      href="https://savelife.in.ua/en/donate-en/#donate-army-card-monthly"
+      target="_blank">A</a>
+    <a href="/">pxl-th</a>
+    <a href="/posts/posts">Posts</a>
+    <a href="/tutorials/intro">Скарбничка знань</a>
+  </div>
+</header>
+
+
+<!-- Content appended here -->
+<div class="franklin-content"><p><strong>Додавання двух масивів</strong></p>
+
+<p>Нехай перед нами стоїть задача по-елементного додавання двух масивів. Для початку, створимо два масиви розміром <code>1024</code>, типу <code>Float32</code> заповнені випадковими даними.</p>
+<pre><code class="language-julia">using CUDA
+
+a &#61; CUDA.rand&#40;Float32, 1024^2&#41;
+b &#61; CUDA.rand&#40;Float32, 1024^2&#41;</code></pre>
+<p>GPU-масиви підтримують більшість операцій що й звичайні масиви, тому для обчислення по-елементного додавання достатньо використати оператор <code>.&#43;</code>.</p>
+<blockquote>
+<p><strong>Замітка:</strong> крапка перед оператором <code>.&#43;</code> дозволяє застосувати його до кожного елемента масивів та називається broadcast.</p>
+</blockquote>
+<pre><code class="language-julia">y &#61; a .&#43; b</code></pre>
 <p>Тепер, перевіримо чи результат правильний порівнявши з обчисленням на процесорі. Для цього, перенесемо дані з GPU на процесор та обчислимо результат:</p>
-<pre><code class="julia hljs">ah = <span class=hljs-built_in >Array</span>(a)
-bh = <span class=hljs-built_in >Array</span>(b)
-yh = ah .+ bh</code></pre>
+<pre><code class="language-julia">ah &#61; Array&#40;a&#41;
+bh &#61; Array&#40;b&#41;
+yh &#61; ah .&#43; bh</code></pre>
 <p>Для порівняння, перенесемо результат з GPU на процесор та порівняємо два масиви:</p>
-<pre><code class="julia hljs">res = isapprox(<span class=hljs-built_in >Array</span>(y), yh)
-<span class=hljs-meta >@show</span> res
-<span class=hljs-meta >@assert</span> res</code></pre>
-<pre><code class="plaintext hljs">res = true
+<pre><code class="language-julia">res &#61; isapprox&#40;Array&#40;y&#41;, yh&#41;
+@show res
+@assert res</code></pre>
+<pre><code class="plaintext code-output">res = true
 </code></pre>
 <p>Julia також дозволяє використовувати Unicode символи, тому функуцію <code>isapprox</code> можна замінити на оператор <code>≈</code>:</p>
-<pre><code class="julia hljs">res = <span class=hljs-built_in >Array</span>(y) ≈ yh
-<span class=hljs-meta >@show</span> res
-<span class=hljs-meta >@assert</span> res</code></pre>
-<pre><code class="plaintext hljs">res = true
+<pre><code class="language-julia">res &#61; Array&#40;y&#41; ≈ yh
+@show res
+@assert res</code></pre>
+<pre><code class="plaintext code-output">res = true
 </code></pre>
 <hr />
 <p><strong>Швидкість роботи на GPU та CPU</strong></p>
 <p>Для порівняння швидкості роботи використаємо пакет <a href="https://github.com/JuliaCI/BenchmarkTools.jl">BenchmarkTools.jl</a>, який виконує код декілька разів для збору статистики та більш точного заміру часу.</p>
 <p>Виміряємо швидкість роботи на CPU:</p>
-<pre><code class="julia hljs"><span class=hljs-keyword >using</span> BenchmarkTools
+<pre><code class="language-julia">using BenchmarkTools
 
-<span class=hljs-meta >@btime</span> $ah .+ $bh</code></pre>
-<pre><code class="plaintext hljs">  449.330 μs (2 allocations: 4.00 MiB)
+@btime &#36;ah .&#43; &#36;bh</code></pre>
+<pre><code class="plaintext code-output">  449.330 μs (2 allocations: 4.00 MiB)
 </code></pre>
 <p>Тепер виміряємо швидкість роботи GPU.</p>
 <blockquote>
 <p><strong>Замітка:</strong> весь код, що виконується на відеокарті, виконується <strong>асинхронно</strong>, тому для правильного вимірювання часу, нам наобхідно синхронізувати відеокарту після кожної операції за допомогою макро <code>CUDA.@sync</code>.</p>
 </blockquote>
-<pre><code class="julia hljs"><span class=hljs-meta >@btime</span> CUDA.<span class=hljs-meta >@sync</span> $a .+ $b</code></pre>
-<pre><code class="plaintext hljs">  56.757 μs (12 allocations: 448 bytes)
+<pre><code class="language-julia">@btime CUDA.@sync &#36;a .&#43; &#36;b</code></pre>
+<pre><code class="plaintext code-output">  56.757 μs (12 allocations: 448 bytes)
 </code></pre>
 <p>Бачимо, що відеокарта виконує обчислення в декілька разів швидше ніж CPU.</p>
 <p>Також, для повноти картини, покажемо час у випадку якщо не синхронізовувати відеокарту. В такому випадку час буде не правильний, а ми будемо вимірювати швидкість створення команд для відеокарти, а не час їх виконання.</p>
-<pre><code class="julia hljs"><span class=hljs-meta >@btime</span> $a .+ $b</code></pre>
-<pre><code class="plaintext hljs">  3.393 μs (12 allocations: 448 bytes)
+<pre><code class="language-julia">@btime &#36;a .&#43; &#36;b</code></pre>
+<pre><code class="plaintext code-output">  3.393 μs (12 allocations: 448 bytes)
 </code></pre>
 <hr />
 <p><strong>Перше ядро для відеокарти</strong></p>
@@ -47,48 +84,53 @@ yh = ah .+ bh</code></pre>
 <p><strong>Замітка:</strong> ядро - це функція, яка виконується на відеокарті.</p>
 </blockquote>
 <p>Напишемо таке ядро вручну. Дякуючи можливостям Julia, нам не потрібно використовувати для цього С/C&#43;&#43; як це роблять у випадку з Python, адже ми можемо писати такі ядра одразу на Julia.</p>
-<pre><code class="julia hljs"><span class=hljs-keyword >function</span> vadd!(y, a, b)
-    i = threadIdx().x + (blockIdx().x - <span class=hljs-number >1</span>) * blockDim().x
-    <span class=hljs-keyword >if</span> i ≤ length(a)
-        y[i] = a[i] + b[i]
-    <span class=hljs-keyword >end</span>
-    <span class=hljs-keyword >return</span>
-<span class=hljs-keyword >end</span></code></pre>
+<pre><code class="language-julia">function vadd&#33;&#40;y, a, b&#41;
+    i &#61; threadIdx&#40;&#41;.x &#43; &#40;blockIdx&#40;&#41;.x - 1&#41; * blockDim&#40;&#41;.x
+    if i ≤ length&#40;a&#41;
+        y&#91;i&#93; &#61; a&#91;i&#93; &#43; b&#91;i&#93;
+    end
+    return
+end</code></pre>
 <p>Як бачимо, ядро в Julia це звичайна функція. Ядра виконуються на решітці, розмір якої задає користувач. Решітка може бути 1D, 2D або 3D, та поділена на блоки, які також задаються користувачем.</p>
 <p>В нашому випадку, решітка одновимірна &#40;1D&#41;, розмір її дорівнює довжині нашого масиву даних &#40;<code>1024^2</code>&#41;, а розмір блока задамо <code>256</code>.</p>
 <p>Розмір блока визначає кількість потоків які будуть виконуватись одним потоковим процесором &#40;<a href="https://en.wikipedia.org/wiki/Thread_block_&#40;CUDA_programming&#41;">stream processor</a>&#41;, але про це пізніше.</p>
 <p>Для обчислення положення поточного потоку <code>i</code> на решітці, використаємо:</p>
 <ul>
 <li><p>його індекс в блоці &#40;<code>threadIdx&#40;&#41;.x</code>&#41; який в нашому випадку буде в межах   від <code>1</code> до <code>256</code>.</p>
-
+</li>
 <li><p>поточний індекс блоку &#40;<code>blockIdx&#40;&#41;.x</code>&#41; який в нашому випадку буде від <code>1</code>   до <code>ceil&#40;length&#40;a&#41; / 256&#41;</code>.</p>
-
+</li>
 <li><p>та власне розмір блоку &#40;<code>blockDim&#40;&#41;.x &#61; 256</code>&#41;.</p>
-
+</li>
 </ul>
 <p>Таким чином з кожним елементом масива асоційований унікальний потік з індексом <code>i</code>, який приймає знайчення від <code>1</code> до <code>length&#40;a&#41;</code>, що ми й використали для обчислення суми.</p>
 <p>Для запуску ядра на відеокарті, необхідно створити масив, в який ми будемо записувати результат обчислення. Створимо не-ініціалізований масив даних:</p>
-<pre><code class="julia hljs">y = CuArray{<span class=hljs-built_in >Float32</span>}(<span class=hljs-literal >undef</span>, length(a))</code></pre>
+<pre><code class="language-julia">y &#61; CuArray&#123;Float32&#125;&#40;undef, length&#40;a&#41;&#41;</code></pre>
 <p>Для запуску ядра на відеокарті, необхідно викликати функцію <code>vadd&#33;</code>, попередньо додавши макро <code>@cuda</code> та передавши агрументи в ядро:</p>
-<pre><code class="julia hljs">threads = <span class=hljs-number >256</span>
-blocks = cld(length(y), threads)
-<span class=hljs-meta >@cuda</span> threads=threads blocks=blocks vadd!(y, a, b)</code></pre>
+<pre><code class="language-julia">threads &#61; 256
+blocks &#61; cld&#40;length&#40;y&#41;, threads&#41;
+@cuda threads&#61;threads blocks&#61;blocks vadd&#33;&#40;y, a, b&#41;</code></pre>
 <p>Після запуску необхідно синхронізувати відеокарту перші ніж зчитувати дані. Це можна зробити вручну викликом функції <code>CUDA.synchronize&#40;&#41;</code>, проте при копіюванні даних з відеокарти на процесор, синхронізація відбувається автоматично. Тепер перевіримо результат, порівнявши з обчисленнями зробленими на процесорі:</p>
-<pre><code class="julia hljs">res = <span class=hljs-built_in >Array</span>(y) ≈ yh
-<span class=hljs-meta >@show</span> res
-<span class=hljs-meta >@assert</span> res</code></pre>
-<pre><code class="plaintext hljs">res = true
+<pre><code class="language-julia">res &#61; Array&#40;y&#41; ≈ yh
+@show res
+@assert res</code></pre>
+<pre><code class="plaintext code-output">res = true
 </code></pre>
 <p>Таким чином ми успішно написали наше перше ядро для по-елементного додавання двух масивів&#33;</p>
-<div class=page-foot >
-    <div class=navbar >
+<p>Q</p>
+<div class="page-foot">
+    <div class="navbar">
         <a href="mailto:tonysmn97@gmail.com">tonysmn97@gmail.com</a>
         <a href="https://github.com/pxl-th">github</a>
         <a href="https://www.instagram.com/pxl_th/">instagram</a>
     </div>
 </div>
-</div>
+</div><!-- CONTENT ENDS HERE -->
     
     
         <script src="/libs/highlight/highlight.min.js"></script>
 <script>hljs.highlightAll();hljs.configure({tabReplace: '    '});</script>
+
+    
+  </body>
+</html>
