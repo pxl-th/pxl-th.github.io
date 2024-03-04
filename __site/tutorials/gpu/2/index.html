@@ -28,7 +28,6 @@
 
 <!-- Content appended here -->
 <div class="franklin-content"><p><strong>Додавання двух масивів</strong></p>
-
 <p>Нехай перед нами стоїть задача по-елементного додавання двух масивів. Для початку, створимо два масиви розміром <code>1024</code>, типу <code>Float32</code> заповнені випадковими даними.</p>
 <pre><code class="language-julia">using CUDA
 
@@ -62,19 +61,19 @@ yh &#61; ah .&#43; bh</code></pre>
 <pre><code class="language-julia">using BenchmarkTools
 
 @btime &#36;ah .&#43; &#36;bh</code></pre>
-<pre><code class="plaintext code-output">  449.330 μs (2 allocations: 4.00 MiB)
+<pre><code class="plaintext code-output">  448.869 μs (2 allocations: 4.00 MiB)
 </code></pre>
 <p>Тепер виміряємо швидкість роботи GPU.</p>
 <blockquote>
 <p><strong>Замітка:</strong> весь код, що виконується на відеокарті, виконується <strong>асинхронно</strong>, тому для правильного вимірювання часу, нам наобхідно синхронізувати відеокарту після кожної операції за допомогою макро <code>CUDA.@sync</code>.</p>
 </blockquote>
 <pre><code class="language-julia">@btime CUDA.@sync &#36;a .&#43; &#36;b</code></pre>
-<pre><code class="plaintext code-output">  56.757 μs (12 allocations: 448 bytes)
+<pre><code class="plaintext code-output">  56.227 μs (12 allocations: 448 bytes)
 </code></pre>
 <p>Бачимо, що відеокарта виконує обчислення в декілька разів швидше ніж CPU.</p>
 <p>Також, для повноти картини, покажемо час у випадку якщо не синхронізовувати відеокарту. В такому випадку час буде не правильний, а ми будемо вимірювати швидкість створення команд для відеокарти, а не час їх виконання.</p>
 <pre><code class="language-julia">@btime &#36;a .&#43; &#36;b</code></pre>
-<pre><code class="plaintext code-output">  3.393 μs (12 allocations: 448 bytes)
+<pre><code class="plaintext code-output">  3.523 μs (12 allocations: 448 bytes)
 </code></pre>
 <hr />
 <p><strong>Перше ядро для відеокарти</strong></p>
@@ -117,7 +116,6 @@ blocks &#61; cld&#40;length&#40;y&#41;, threads&#41;
 <pre><code class="plaintext code-output">res = true
 </code></pre>
 <p>Таким чином ми успішно написали наше перше ядро для по-елементного додавання двух масивів&#33;</p>
-<p>Q</p>
 <div class="page-foot">
     <div class="navbar">
         <a href="mailto:tonysmn97@gmail.com">tonysmn97@gmail.com</a>
