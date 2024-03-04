@@ -10,9 +10,8 @@
 </div>
 ~~~
 
-I'm Anton Smirnov. \\
-Live in Ukraine, Kyiv. \\
-Currently work at AMD on various Julia GPU related projects.
+`☺` Anton Smirnov\\
+`⌂` Ukraine, Kyiv\\
 
 Talks
 
