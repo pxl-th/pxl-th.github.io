@@ -37,7 +37,12 @@ jobs:
             using Pkg; Pkg.activate("."); Pkg.instantiate();
             using NodeJS; run(`$(npm_cmd()) install highlight.js`);
             using Franklin;
-            optimize()'
+
+            rm("__site", recursive=true, force=true);
+
+            Franklin.def_GLOBAL_VARS!();
+            Franklin.convert_md(read("config.md", String); isconfig=true);
+            optimize(prepath=Franklin.globvar(:prepath))'
     - name: Build and Deploy
       uses: JamesIves/github-pages-deploy-action@releases/v3
       with:

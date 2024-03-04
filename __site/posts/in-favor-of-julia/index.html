@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+   <link rel="stylesheet" href="/libs/highlight/styles/github.min.css">
+   
+  <link rel="stylesheet" href="/css/franklin.css">
+<link rel="stylesheet" href="/css/hypertext.css">
+<link rel="icon" href="/assets/favicon.png">
+
+   <title></title>  
+</head>
+<body>
+<header class="franklin-header">
+  <div class="navbar">
+    <a
+      class="Tryzub" style="text-decoration:none;"
+      href="https://savelife.in.ua/en/donate-en/#donate-army-card-monthly"
+      target="_blank">A</a>
+    <a href="/">pxl-th</a>
+    <a href="/posts/posts">Posts</a>
+    <a href="/tutorials/intro">Скарбничка знань</a>
+  </div>
+</header>
+
+
+<!-- Content appended here -->
+<div class="franklin-content"><p><strong>In favor of Julia</strong></p>
+<p>Discussions around Julia often end up concentrating on its immediate disadvantages disregarding its current and future potential.</p>
+<p>One area I think it fits particularly well at this moment is in Neural Radiance Fields, because such algorithms are small enough to be easily implemented from scratch in Julia.</p>
+<p>No other language allows you &#40;this easily&#41; to write GPU kernels, integrate them with AD ecosystem and run on different backends without changing the source code of those kernels.</p>
+<p>Take for example Multiresolution Hashgrid Encoding from <a href="https://nvlabs.github.io/instant-ngp/">Instant NGP</a> and compare its <a href="https://github.com/NVlabs/tiny-cuda-nn/blob/master/include/tiny-cuda-nn/encodings/grid.h">C&#43;&#43; implementation</a> with <a href="https://github.com/JuliaNeuralGraphics/NerfUtils.jl/blob/main/src/encoding/grid_kernels.jl">Julia implementation</a>.<br/> And then add on top of it the complexity of integrating C&#43;&#43; implementation with popular deep learning frameworks like PyTorch.</p>
+<p>To tie forward and backward kernels with AD support in Julia all you have to do is define a <a href="https://github.com/JuliaDiff/ChainRules.jl">chain-rule</a>, where <code>ge&#40;x, θ&#41;</code> computes a forward pass and <code>∇&#40;ge, Δ2, x, θ&#41;</code> backward for given parameters <code>θ</code>.</p>
+<pre><code class="language-julia">function ChainRulesCore.rrule&#40;ge::GridEncoding, x, θ&#41;
+    function encode_pullback&#40;Δ&#41;
+        Δ2 &#61; reshape&#40;unthunk&#40;Δ&#41;, &#40;output_size&#40;ge&#41;..., size&#40;x, 2&#41;&#41;&#41;
+        Tangent&#123;GridEncoding&#125;&#40;&#41;, NoTangent&#40;&#41;, ∇&#40;ge, Δ2, x, θ&#41;
+    end
+    ge&#40;x, θ&#41;, encode_pullback
+end</code></pre>
+<p>Or see how GaussianSplatting algorithm that has 3 levels &#40;<a href="https://github.com/graphdeco-inria/diff-gaussian-rasterization/blob/59f5f77e3ddbac3ed9db93ec2cfe99ed6c5d121d/cuda_rasterizer/rasterizer_impl.cu">1</a>, <a href="https://github.com/graphdeco-inria/diff-gaussian-rasterization/blob/59f5f77e3ddbac3ed9db93ec2cfe99ed6c5d121d/rasterize_points.cu">2</a>, <a href="https://github.com/graphdeco-inria/diff-gaussian-rasterization/blob/59f5f77e3ddbac3ed9db93ec2cfe99ed6c5d121d/diff_gaussian_rasterization/__init__.py">3</a>&#41; of very similar-looking wrappers just to go from C&#43;&#43;/CUDA to Python/PyTorch.<br/></p>
+<p>And then the question of supporting multiple backends comes up &#40;take Nvidia and AMD GPUs as an example&#41;, where you have to install separate versions of PyTorch specifically compiled for the particular CUDA/ROCm version.<br/> And there ROCm version doesn&#39;t even get it&#39;s own device name, having to emulate <code>cuda</code>...</p>
+<p>Whereas in Julia you just add respective backend package and import it in your environment, where they extend packages with support for GPU. E.g. with <a href="https://github.com/FluxML/Flux.jl">Flux</a> &#40;an alternative to PyTorch in Julia&#41; to enable respective GPU backend you just import that package:</p>
+<pre><code class="language-julia">julia&gt; using AMDGPU # Enables AMD GPU support
+julia&gt; using CUDA   # Enables Nvidia GPU support
+julia&gt; using Flux</code></pre>
+<p>No wonder <a href="https://twitter.com/jimkxa/status/1758943527743234234">nobody writes CUDA</a> these days...</p>
+<p>It&#39;s not that it is not beautiful, it&#39;s that it is cumbersome to make those kernels useful afterwards.</p>
+<div class="page-foot">
+    <div class="navbar">
+        <a href="mailto:tonysmn97@gmail.com">tonysmn97@gmail.com</a>
+        <a href="https://github.com/pxl-th">github</a>
+        <a href="https://www.instagram.com/pxl_th/">instagram</a>
+    </div>
+</div>
+</div><!-- CONTENT ENDS HERE -->
+    
+    
+        <script src="/libs/highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();hljs.configure({tabReplace: '    '});</script>
+
+    
+  </body>
+</html>
