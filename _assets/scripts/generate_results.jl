@@ -1,8 +1,3 @@
-# Parent file to run all scripts which may generate
-# some output that you want to display on the website.
-# this can be used as a tester to check that all the code
-# on your website runs properly.
-
 dir = @__DIR__
 
 """
@@ -11,16 +6,31 @@ dir = @__DIR__
 Small helper function to run some code and redirect the output (stdout) to a file.
 """
 function genplain(s::String)
-    open(joinpath(dir, "output", "$(splitext(s)[1]).txt"), "w") do outf
+    script = joinpath(dir, s)
+    fpath = joinpath(dir, "output", "$(splitext(s)[1]).out")
+    fdir = dirname(fpath)
+
+    isdir(fdir) || mkpath(fdir)
+
+    open(fpath, "w") do outf
         redirect_stdout(outf) do
-            include(joinpath(dir, s))
+            include(script)
         end
     end
 end
 
-# output
-
-genplain("script1.jl")
+genplain("tutorials-gpu-2-1.jl")
+genplain("tutorials-gpu-2-2.jl")
+genplain("tutorials-gpu-2-3.jl")
+genplain("tutorials-gpu-2-4.jl")
+genplain("tutorials-gpu-2-5.jl")
+genplain("tutorials-gpu-2-6.jl")
+genplain("tutorials-gpu-2-7.jl")
+genplain("tutorials-gpu-2-8.jl")
+genplain("tutorials-gpu-2-9.jl")
+genplain("tutorials-gpu-2-10.jl")
+genplain("tutorials-gpu-2-11.jl")
+genplain("tutorials-gpu-2-12.jl")
 
 # plots
 
