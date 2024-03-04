@@ -10,8 +10,8 @@
 </div>
 ~~~
 
-`☺` Anton Smirnov\\
-`⌂` Ukraine, Kyiv\\
+Anton Smirnov\\
+Ukraine, Kyiv\\
 
 Talks
 
