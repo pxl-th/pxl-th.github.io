@@ -61,19 +61,19 @@ yh &#61; ah .&#43; bh</code></pre>
 <pre><code class="language-julia">using BenchmarkTools
 
 @btime &#36;ah .&#43; &#36;bh</code></pre>
-<pre><code class="plaintext code-output">  448.869 μs (2 allocations: 4.00 MiB)
+<pre><code class="plaintext code-output">  528.880 μs (2 allocations: 4.00 MiB)
 </code></pre>
 <p>Тепер виміряємо швидкість роботи GPU.</p>
 <blockquote>
 <p><strong>Замітка:</strong> весь код, що виконується на відеокарті, виконується <strong>асинхронно</strong>, тому для правильного вимірювання часу, нам наобхідно синхронізувати відеокарту після кожної операції за допомогою макро <code>CUDA.@sync</code>.</p>
 </blockquote>
 <pre><code class="language-julia">@btime CUDA.@sync &#36;a .&#43; &#36;b</code></pre>
-<pre><code class="plaintext code-output">  56.227 μs (12 allocations: 448 bytes)
+<pre><code class="plaintext code-output">  56.737 μs (12 allocations: 448 bytes)
 </code></pre>
 <p>Бачимо, що відеокарта виконує обчислення в декілька разів швидше ніж CPU.</p>
 <p>Також, для повноти картини, покажемо час у випадку якщо не синхронізовувати відеокарту. В такому випадку час буде не правильний, а ми будемо вимірювати швидкість створення команд для відеокарти, а не час їх виконання.</p>
 <pre><code class="language-julia">@btime &#36;a .&#43; &#36;b</code></pre>
-<pre><code class="plaintext code-output">  3.523 μs (12 allocations: 448 bytes)
+<pre><code class="plaintext code-output">  3.449 μs (12 allocations: 448 bytes)
 </code></pre>
 <hr />
 <p><strong>Перше ядро для відеокарти</strong></p>
