@@ -1,0 +1,1 @@
+CUDA.HostKernel for vadd!(CUDA.CuDeviceVector{Float32, 1}, CUDA.CuDeviceVector{Float32, 1}, CUDA.CuDeviceVector{Float32, 1})
