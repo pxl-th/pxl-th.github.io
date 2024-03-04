@@ -11,7 +11,7 @@
 ~~~
 
 Anton Smirnov\\
-Ukraine, Kyiv\\
+Ukraine, Kyiv
 
 Talks
 
