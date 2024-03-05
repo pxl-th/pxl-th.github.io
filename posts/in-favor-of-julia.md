@@ -52,9 +52,9 @@ E.g. with [Flux](https://github.com/FluxML/Flux.jl)
 (an alternative to PyTorch in Julia) to enable respective GPU backend
 you just import that package:
 ```julia
-julia> using AMDGPU # Enables AMD GPU support
-julia> using CUDA   # Enables Nvidia GPU support
-julia> using Flux
+using AMDGPU # Enables AMD GPU support
+using CUDA   # Enables Nvidia GPU support
+using Flux
 ```
 
 No wonder
