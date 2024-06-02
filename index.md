@@ -13,6 +13,28 @@
 Anton Smirnov\\
 Ukraine, Kyiv
 
+Projects
+
+- GaussianSplatting.jl (coming soon):
+    Gaussian Splatting implementation for real-time environment reconstruction.
+- [Nerf.jl](https://github.com/JuliaNeuralGraphics/Nerf.jl):
+    Real-time Instant NGP (real-time Neural Radiance Fields) implementation.
+- [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl):
+    AMD GPU programming in pure Julia language.
+- [SLAM.jl](https://github.com/pxl-th/SLAM.jl):
+    Real-time Visual Simultaneous Localization and Mapping implementation
+    (à la ORB SLAM).
+- [Trace.jl](https://github.com/pxl-th/Trace.jl):
+    Physically-based ray tracing on CPU.
+
+Jobs
+
+- Machine Learning Engineer @ Stability AI (since April 2024)
+- Research Engineer @ AMD (March 2022 - April 2024)
+
 Talks
 
-- [JuliaCon 2023](https://youtu.be/wmCra6roZn4?si=jhVBepTqvlvTyaEZ)
+- [PASC24](https://pasc24.pasc-conference.org/presentation/?id=msa243&sess=sess131):
+    AMD GPU Programming in Julia for High-Performance Real-Time Neural Rendering
+- [JuliaCon 2023](https://youtu.be/wmCra6roZn4?si=jhVBepTqvlvTyaEZ):
+    Nerf.jl: A Real-Time Neural 3D Scene Reconstruction in Pure Julia
