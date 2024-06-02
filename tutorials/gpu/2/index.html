@@ -61,19 +61,22 @@ yh &#61; ah .&#43; bh</code></pre>
 <pre><code class="language-julia">using BenchmarkTools
 
 @btime &#36;ah .&#43; &#36;bh</code></pre>
-<pre><code class="plaintext code-output">  441.102 μs (2 allocations: 4.00 MiB)
+<pre><code class="plaintext code-output">ArgumentError: Package BenchmarkTools not found in current path.
+- Run `import Pkg; Pkg.add("BenchmarkTools")` to install the BenchmarkTools package.
 </code></pre>
 <p>Тепер виміряємо швидкість роботи GPU.</p>
 <blockquote>
 <p><strong>Замітка:</strong> весь код, що виконується на відеокарті, виконується <strong>асинхронно</strong>, тому для правильного вимірювання часу, нам наобхідно синхронізувати відеокарту після кожної операції за допомогою макро <code>CUDA.@sync</code>.</p>
 </blockquote>
 <pre><code class="language-julia">@btime CUDA.@sync &#36;a .&#43; &#36;b</code></pre>
-<pre><code class="plaintext code-output">  56.849 μs (12 allocations: 448 bytes)
+<pre><code class="plaintext code-output">LoadError: UndefVarError: `@btime` not defined
+in expression starting at none:1
 </code></pre>
 <p>Бачимо, що відеокарта виконує обчислення в декілька разів швидше ніж CPU.</p>
 <p>Також, для повноти картини, покажемо час у випадку якщо не синхронізовувати відеокарту. В такому випадку час буде не правильний, а ми будемо вимірювати швидкість створення команд для відеокарти, а не час їх виконання.</p>
 <pre><code class="language-julia">@btime &#36;a .&#43; &#36;b</code></pre>
-<pre><code class="plaintext code-output">  3.346 μs (12 allocations: 448 bytes)
+<pre><code class="plaintext code-output">LoadError: UndefVarError: `@btime` not defined
+in expression starting at none:1
 </code></pre>
 <hr />
 <p><strong>Перше ядро для відеокарти</strong></p>
@@ -121,6 +124,7 @@ blocks &#61; cld&#40;length&#40;y&#41;, threads&#41;
         <a href="mailto:tonysmn97@gmail.com">tonysmn97@gmail.com</a>
         <a href="https://github.com/pxl-th">github</a>
         <a href="https://www.instagram.com/pxl_th/">instagram</a>
+        <a href="https://www.linkedin.com/in/tonysmn/">linkedin</a>
     </div>
 </div>
 </div><!-- CONTENT ENDS HERE -->

@@ -1,1 +1,2 @@
-  441.102 μs (2 allocations: 4.00 MiB)
+ArgumentError: Package BenchmarkTools not found in current path.
+- Run `import Pkg; Pkg.add("BenchmarkTools")` to install the BenchmarkTools package.
