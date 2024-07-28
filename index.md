@@ -15,7 +15,7 @@ Ukraine, Kyiv
 
 Projects
 
-- GaussianSplatting.jl (coming soon):
+- [GaussianSplatting.jl](https://github.com/JuliaNeuralGraphics/GaussianSplatting.jl):
     Gaussian Splatting implementation for real-time environment reconstruction.
 - [Nerf.jl](https://github.com/JuliaNeuralGraphics/Nerf.jl):
     Real-time Instant NGP (real-time Neural Radiance Fields) implementation.
