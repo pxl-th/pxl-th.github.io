@@ -36,5 +36,7 @@ Talks
 
 - [PASC24](https://pasc24.pasc-conference.org/presentation/?id=msa243&sess=sess131):
     AMD GPU Programming in Julia for High-Performance Real-Time Neural Rendering
+- [SC23](https://sc23.conference-program.com/presentation/?id=bof232&sess=sess366):
+    State of AMDGPU programming in Julia.
 - [JuliaCon 2023](https://youtu.be/wmCra6roZn4?si=jhVBepTqvlvTyaEZ):
     Nerf.jl: A Real-Time Neural 3D Scene Reconstruction in Pure Julia
