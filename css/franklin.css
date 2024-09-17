@@ -16,8 +16,8 @@
 
 html {
   background: #fbfbfd;
-  font-family: serif;
-  font-size: var(--normal);
+  font-family: monospace;
+  font-size: var(--small);
   color: #333;
 }
 
