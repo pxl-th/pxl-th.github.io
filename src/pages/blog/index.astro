@@ -1,0 +1,26 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Blog">
+    <header>
+        <nav>
+            <a href={`${base}/`}>main</a>
+            <a href={`${base}/blog`}>blog</a>
+        </nav>
+    </header>
+    <div class="content">
+        <div class="side">
+            <div class="c2">
+                <ul class="posts">
+                    <li>
+                        <a href={`${base}/blog/first-post`}>First post</a>
+                        <p>brief explanation.</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</Layout>

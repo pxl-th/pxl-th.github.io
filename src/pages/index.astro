@@ -1,0 +1,146 @@
+---
+import Layout from '../layouts/Layout.astro';
+import WaveImage from '../components/WaveImage.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Layout title="Your Name">
+    <header>
+        <nav>
+            <a href={`${base}/`}>main</a>
+            <a href={`${base}/blog`}>blog</a>
+        </nav>
+    </header>
+    <div class="content">
+        <div class="c1">
+            <figure class="portrait">
+                <WaveImage src={`${base}/pic.jpg`} alt="Anton Smirnov" />
+                <figcaption>Anton Smirnov</figcaption>
+            </figure>
+
+            <p>↓ <i>Necessary links</i> ↓</p>
+
+            <ol>
+                <li>
+                    <a href="https://github.com/pxl-th" target="_blank" rel="noopener">github</a>
+                </li>
+
+                <li>
+                    <a href="https://www.instagram.com/pxl_th/" target="_blank" rel="noopener">instagram</a>
+                </li>
+
+                <li>
+                    <a href="mailto:tonysmn97@gmail.com" target="_blank" rel="noopener">tonysmn97@gmail.com</a>
+                </li>
+
+                <li>
+                    <a href="https://www.linkedin.com/feed/" target="_blank" rel="noopener">linkedin</a>
+                </li>
+            </ol>
+        </div>
+
+        <div class="side">
+        <div class="c2">
+            <h2><i>⋅ Projects ⋅</i></h2>
+            <ul class="projects">
+                <li>
+                    <a href="https://github.com/JuliaNeuralGraphics/GaussianSplatting.jl" target="_blank" rel="noopener">
+                        GaussianSplatting.jl
+                    </a>
+                    <p>Gaussian Splatting implementation for real-time environment reconstruction.</p>
+                </li>
+                <li>
+                    <a href="https://github.com/JuliaNeuralGraphics/Nerf.jl" target="_blank" rel="noopener">
+                        Nerf.jl
+                    </a>
+                    <p>Real-time Instant NGP (Neural Radiance Fields) implementation.</p>
+                </li>
+                <li>
+                    <a href="https://github.com/JuliaGPU/AMDGPU.jl" target="_blank" rel="noopener">
+                        AMDGPU.jl
+                    </a>
+                    <p>AMD GPU programming in pure Julia language.</p>
+                </li>
+                <li>
+                    <a href="https://github.com/pxl-th/SLAM.jl" target="_blank" rel="noopener">
+                        SLAM.jl
+                    </a>
+                    <p>Real-time Visual Simultaneous Localization and Mapping implementation (à la ORB SLAM).</p>
+                </li>
+                <li>
+                    <a href="https://github.com/pxl-th/Trace.jl" target="_blank" rel="noopener">
+                        Trace.jl
+                    </a>
+                    <p>Physically-based ray tracing on CPU.</p>
+                </li>
+            </ul>
+        </div>
+        <div class="c3">
+            <h2><i>⋅ Jobs ⋅</i></h2>
+            <ul class="jobs">
+                <li>
+                    Machine Learning Engineer @ Stability AI
+                    <p>April 2024 - December 2025</p>
+                </li>
+                <li>
+                    Research Engineer @ AMD
+                    <p>March 2022 - April 2024</p>
+                </li>
+            </ul>
+        </div>
+        <div class="c4">
+            <h2><i>⋅ Talks ⋅</i></h2>
+            <ul class="jobs">
+                <li>
+                    <a href="https://pasc24.pasc-conference.org/presentation/?id=msa243&sess=sess131"  target="_blank" rel="noopener">
+                        PASC24
+                    </a>
+                    <p>AMD GPU Programming in Julia for High-Performance Real-Time Neural Rendering</p>
+                </li>
+                <li>
+                    <a href="https://sc23.conference-program.com/presentation/?id=bof232&sess=sess366" target="_blank" rel="noopener">
+                        SC23
+                    </a>
+                    <p>State of AMDGPU programming in Julia</p>
+                </li>
+                <li>
+                    <a href="https://youtu.be/wmCra6roZn4?si=jhVBepTqvlvTyaEZ" target="_blank" rel="noopener">
+                        JuliaCon 2023
+                    </a>
+                    <p>Nerf.jl: A Real-Time Neural 3D Scene Reconstruction in Pure Julia</p>
+                </li>
+            </ul>
+        </div>
+        </div>
+    </div>
+
+    <div id="trail"></div>
+
+    <script>
+        const trail = document.getElementById('trail')!;
+        const chars = ['*', '+', '.', '~', "'", '"', '^', 'o', '#'];
+        const colors = ['#4a7c3f', '#6b4423', '#9a9272', '#c2461d', '#d98e04'];
+
+        let lastSpawn = 0;
+        const minIntervalMs = 40;
+
+        document.addEventListener('mousemove', (e) => {
+            const now = performance.now();
+            if (now - lastSpawn < minIntervalMs) return;
+            lastSpawn = now;
+
+            const span = document.createElement('span');
+            span.className = 'trail-char';
+            span.textContent = chars[Math.floor(Math.random() * chars.length)];
+            span.style.left = `${e.clientX}px`;
+            span.style.top = `${e.clientY}px`;
+            span.style.color = colors[Math.floor(Math.random() * colors.length)];
+            span.style.setProperty('--dx', `${(Math.random() - 0.5) * 40}px`);
+            span.style.setProperty('--dy', `${(Math.random() - 0.5) * 40 - 20}px`);
+
+            span.addEventListener('animationend', () => span.remove());
+            trail.appendChild(span);
+        });
+    </script>
+</Layout>
