@@ -136,7 +136,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
             const ro = new ResizeObserver(evaluate);
             ro.observe(c1); // re-check once the wave canvas finishes sizing
-            window.addEventListener('resize', evaluate);
+
+            // Only react to width changes. On mobile, scrolling shows/hides the
+            // URL bar, which fires `resize` with a new height; re-evaluating
+            // there would toggle the layout and jump the scroll to the top.
+            let lastWidth = window.innerWidth;
+            window.addEventListener('resize', () => {
+                if (window.innerWidth === lastWidth) return;
+                lastWidth = window.innerWidth;
+                evaluate();
+            });
             evaluate();
         }
     </script>
