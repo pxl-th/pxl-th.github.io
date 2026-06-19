@@ -7,7 +7,7 @@ interface Props {
 const { src, alt = '' } = Astro.props;
 ---
 
-<canvas class="wave-image" data-src={src} role="img" aria-label={alt}></canvas>
+<canvas class="wave-image" width="400" height="500" data-src={src} role="img" aria-label={alt}></canvas>
 
 <script>
     // Port of scripts/line.py: render an image as horizontal wavy lines whose

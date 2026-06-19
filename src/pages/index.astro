@@ -35,7 +35,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
                 </li>
 
                 <li>
-                    <a href="https://www.linkedin.com/feed/" target="_blank" rel="noopener">linkedin</a>
+                    <a href="https://www.linkedin.com/in/tonysmn/" target="_blank" rel="noopener">linkedin</a>
                 </li>
             </ol>
         </div>
@@ -93,7 +93,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
             <h2><i>⋅ Talks ⋅</i></h2>
             <ul class="jobs">
                 <li>
-                    <a href="https://pasc24.pasc-conference.org/presentation/?id=msa243&sess=sess131"  target="_blank" rel="noopener">
+                    <a href="https://submissions.pasc-conference.org/pasc24_program/views/at_a_glance.html"  target="_blank" rel="noopener">
                         PASC24
                     </a>
                     <p>AMD GPU Programming in Julia for High-Performance Real-Time Neural Rendering</p>
@@ -116,6 +116,30 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     </div>
 
     <div id="trail"></div>
+
+    <script>
+        // Stack .c1 above .side as soon as it would spill off the left edge.
+        // Measure in the wide (absolute) layout every time: force it off, read
+        // .c1's real left edge, then stack if that edge is past the viewport.
+        // (Reading the cached/stacked width is unreliable — while stacked, .c1
+        // is static and stretches to the full column width.)
+        const content = document.querySelector<HTMLElement>('.content');
+        const c1 = document.querySelector<HTMLElement>('.c1');
+        if (content && c1) {
+            const MARGIN = 8; // px of breathing room before it touches the edge
+
+            const evaluate = () => {
+                content.classList.remove('stacked');
+                const overflowsLeft = c1.getBoundingClientRect().left < MARGIN;
+                content.classList.toggle('stacked', overflowsLeft);
+            };
+
+            const ro = new ResizeObserver(evaluate);
+            ro.observe(c1); // re-check once the wave canvas finishes sizing
+            window.addEventListener('resize', evaluate);
+            evaluate();
+        }
+    </script>
 
     <script>
         const trail = document.getElementById('trail')!;

@@ -172,3 +172,22 @@ a:hover {
         transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.6);
     }
 }
+
+/* When the left gutter can no longer fit the absolutely positioned .c1, the
+   .stacked class (toggled in JS) drops it into normal flow above .side. */
+.content.stacked {
+    flex-direction: column;
+}
+
+.content.stacked .c1 {
+    position: static;
+    padding-right: 0;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.content.stacked .portrait img,
+.content.stacked .portrait canvas {
+    max-width: 100%;
+    margin-inline: auto;
+}
