@@ -1,24 +1,86 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import SplatViewer from '../../components/SplatViewer.astro';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
-<Layout title="First post">
+<Layout title="Better Gaussian Splatting in Julia">
     <header>
         <nav>
             <a href={`${base}/`}>main</a>
             <a href={`${base}/blog`}>blog</a>
         </nav>
     </header>
+    <SplatViewer
+        name="fountain"
+        title="Fountain — Gaussian splat scene"
+        walkOnly
+        collision
+    />
     <div class="content">
         <article class="post">
-            <h1>First post</h1>
-            <p class="post-meta">some meta</p>
+            <h1>Better Gaussian Splatting in Julia</h1>
+            <p class="post-meta">
+            Amulet of St. Michael in Kyiv, Ukraine<br>
+            (reconstructed with GaussianSplatting.jl, ~6M Gaussians)
+            </p>
 
             <p>
-                some text
+            GaussianSplatting.jl 2.0 release brings notable quality of life improvements and new capabilities.
             </p>
+
+            <h3><p>Same code, multiple GPU backends</p></h3>
+
+            <p>
+            Written entirely in Julia it supports following GPU backends:
+            </p>
+
+            <ul>
+                <li>AMDGPU</li>
+                <li>CUDA</li>
+                <li>Metal</li>
+            </ul>
+
+            <h3><p>Multithreaded UI</p></h3>
+
+            <p>
+            To avoid freezing the app during heavy work
+            (such as JIT compilation of GPU kernels, dataset loading, etc.)
+            the app is now split into two threads:
+            </p>
+
+            <ul>
+                <li>Frontend: handles the UI, performs OpenGL rendering, dispatches commands to the backend.</li>
+                <li>Backend: performs Gaussian Splatting rendering, training, dataset loading, etc.</li>
+            </ul>
+
+            <p>
+            In this way, the UI always stays responsive and user can interact with it, even if there are long-standing jobs in the background.
+            It also shows progress bars that something is happening with tips, instead of becoming frozen like before.
+            </p>
+
+            <figure>
+                <img
+                    src={`${base}/img/dataset-loading.gif`}
+                />
+                <figcaption>The spinner keeps animating while the dataset loads on the backend thread</figcaption>
+            </figure>
+
+            <figure>
+                <img
+                    src={`${base}/img/training-spinner.gif`}
+                />
+                <figcaption>and when JIT-compiling kernels for the first training iteration.</figcaption>
+            </figure>
+
+            - multithreaded ui
+            - mcmc
+            - depth / geometry supervision
+            - sky dome
+            - camera frustum shows taken images
+            - checkpointing
+            - parametes configuration
 
             <p>
                 <a href={`${base}/blog`}>← back to blog</a>

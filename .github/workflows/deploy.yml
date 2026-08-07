@@ -24,7 +24,13 @@ jobs:
       - name: Build site
         uses: withastro/action@v3
         # Detects the package manager, installs deps, runs `astro build`,
-        # and uploads ./dist as the Pages artifact.
+        # and uploads ./dist as the Pages artifact. Running via npm also
+        # fires the `prebuild` script, which stages the SuperSplat viewer.
+        env:
+          # Base URL for the .sog splat files, hosted off-repo so they stay
+          # out of git and out of the Pages artifact. Set as a repository
+          # variable; when unset the build falls back to public/splats/.
+          PUBLIC_SPLAT_BASE: ${{ vars.PUBLIC_SPLAT_BASE }}
 
   deploy:
     needs: build
