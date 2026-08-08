@@ -162,6 +162,29 @@ p {
     height: auto;
 }
 
+/* auto-flow column + auto-columns rather than a fixed template so any number of
+   children lands in one row, each an equal share, regardless of their differing
+   intrinsic sizes. min-width: 0 lets them shrink below intrinsic width; below
+   30rem they stack instead of getting unreadably thin. */
+.post .side-by-side {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 0.5rem;
+    align-items: start;
+}
+
+.post .side-by-side > img {
+    min-width: 0;
+    width: 100%;
+}
+
+@media (max-width: 30rem) {
+    .post .side-by-side {
+        grid-auto-flow: row;
+    }
+}
+
 .post figcaption {
     margin-top: 0.25rem;
     font-size: 0.9rem;
@@ -187,6 +210,17 @@ p {
    <pre> alone is not enough to reach IBM Plex Mono. */
 .post pre code {
     font-family: inherit;
+}
+
+/* The whole page is already monospace, so inline code needs a tint and border
+   to read as code at all. :not(pre code) keeps it off the Shiki blocks. */
+.post code:not(pre code) {
+    font-family: inherit;
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+    border: 1px solid rgba(46, 42, 36, 0.15);
+    border-radius: 3px;
+    background: rgba(46, 42, 36, 0.05);
 }
 
 .projects li,
