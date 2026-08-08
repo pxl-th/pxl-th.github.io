@@ -1,8 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import SplatViewer from '../../components/SplatViewer.astro';
+import { Code } from 'astro:components';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const mcmcExample = `Trainer(
+    rasterizer, gaussians, dataset, opt_params;
+    strategy=MCMCStrategy(; kwargs...),
+)`;
 ---
 
 <Layout title="Better Gaussian Splatting in Julia">
@@ -22,12 +28,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         <article class="post">
             <h1>Better Gaussian Splatting in Julia</h1>
             <p class="post-meta">
+            <b>use WASD + Mouse or tap on the screen to walk around :)</b><br>
             Amulet of St. Michael in Kyiv, Ukraine<br>
-            (reconstructed with GaussianSplatting.jl, ~6M Gaussians)
+            (reconstructed with GaussianSplatting.jl, ~6M Gaussians)<br>
             </p>
 
             <p>
-            GaussianSplatting.jl 2.0 release brings notable quality of life improvements and new capabilities.
+            <a href="https://github.com/JuliaNeuralGraphics/GaussianSplatting.jl" target="_blank" rel="noopener">GaussianSplatting.jl</a> <b>2.0</b>
+            release brings notable quality of life improvements and new capabilities.
             </p>
 
             <h3><p>Same code, multiple GPU backends</p></h3>
@@ -37,10 +45,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
             </p>
 
             <ul>
-                <li>AMDGPU</li>
-                <li>CUDA</li>
-                <li>Metal</li>
+                <li>AMD GPU (AMDGPU.jl)</li>
+                <li>NVIDIA GPU (CUDA.jl)</li>
+                <li>MacBook GPU(Metal.jl)</li>
             </ul>
+
+            This is achieved with
+            <a href="https://github.com/JuliaGPU/KernelAbstractions.jl">KernelAbstractions.jl</a>
+            that allows writing single kernel
 
             <h3><p>Multithreaded UI</p></h3>
 
@@ -74,12 +86,49 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
                 <figcaption>and when JIT-compiling kernels for the first training iteration.</figcaption>
             </figure>
 
-            - multithreaded ui
-            - mcmc
-            - depth / geometry supervision
-            - sky dome
-            - camera frustum shows taken images
-            - checkpointing
+            <p>
+            UI/UX itself got a big update and is now displays loss plots live during training along with all hyperparameters.
+            </p>
+
+            <figure>
+                <video
+                    src={`${base}/video/training-dynamics.mp4`}
+                    autoplay
+                    loop
+                    muted
+                    playsinline
+                ></video>
+                <figcaption>Loss plots and hyperparameters update live while training runs.</figcaption>
+            </figure>
+
+            <h3><p>Markov Chain Monte Carlo Strategy</p></h3>
+
+            <p>
+            Besides default cloning and splitting densification strategy,
+            we now support <a href="https://arxiv.org/abs/2404.09591">MCMC</a>
+            (3D Gaussian Splatting as Markov Chain Monte Carlo) densification strategy.
+            </p>
+
+            <p>
+            It allows precise control of the number of Gaussians in the scene
+            and generally relies less on having a good initialization.
+            </p>
+
+            <p>
+            Users can select MCMC during dataset loading or in the code with:
+            </p>
+
+            <Code lang="julia" theme="min-light" code={mcmcExample} />
+
+            <h3><p>Depth & Geometry Supervision</p></h3>
+
+            <h3><p>Sky Dome</p></h3>
+
+            <h3><p>Camera Frustum</p></h3>
+
+            <h3><p>Some Other Niceties</p></h3>
+
+            - checkpointing<br>
             - parametes configuration
 
             <p>
