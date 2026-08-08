@@ -169,6 +169,19 @@ const mcmcExample = `Trainer(
 
             <h3><p>Sky Dome</p></h3>
 
+            <p>
+            To help disentangle sky / distant background and reduce floaters, GaussianSplatting.jl now supports Sky Dome,
+            which is a frozen shell of Gaussians at a large radius, rendered in its own pass and composited behind the scene.
+            </p>
+
+            <figure>
+                <div class="side-by-side">
+                    <img src={`${base}/img/sky-dome-sphere.png`} />
+                    <img src={`${base}/img/sky-dome-hemisphere.png`} />
+                </div>
+                <figcaption>Sky Dome in a form of a sphere and a hemisphere.</figcaption>
+            </figure>
+
             Mention sky masks.
 
             <h3><p>Camera Frustum</p></h3>
