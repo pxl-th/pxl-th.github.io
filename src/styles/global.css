@@ -171,8 +171,9 @@ p {
 
 /* auto-flow column + auto-columns rather than a fixed template so any number of
    children lands in one row, each an equal share, regardless of their differing
-   intrinsic sizes. min-width: 0 lets them shrink below intrinsic width; below
-   30rem they stack instead of getting unreadably thin. */
+   intrinsic sizes. These are comparisons - the pair only reads as one on phones
+   too if they stay side by side - so the row never wraps; min-width: 0 is what
+   lets the cells shrink below their intrinsic width to make that fit. */
 .post .side-by-side {
     display: grid;
     grid-auto-flow: column;
@@ -181,14 +182,16 @@ p {
     align-items: start;
 }
 
-.post .side-by-side > img {
+.post .side-by-side > img,
+.post .side-by-side > video {
     min-width: 0;
     width: 100%;
 }
 
 @media (max-width: 30rem) {
+    /* Tighter gutter, so the narrow columns keep as much width as possible. */
     .post .side-by-side {
-        grid-auto-flow: row;
+        gap: 0.25rem;
     }
 
     /* Phone screens: buy back the horizontal room the gutters were taking. */
