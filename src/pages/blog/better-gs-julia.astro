@@ -52,7 +52,7 @@ const mcmcExample = `Trainer(
 
             <p>
             This is achieved with
-            <a href="https://github.com/JuliaGPU/KernelAbstractions.jl">KernelAbstractions.jl</a>
+            <a href="https://github.com/JuliaGPU/KernelAbstractions.jl" target="_blank" rel="noopener">KernelAbstractions.jl</a>
             that allows writing a single kernel that get's compiled to a specific target.
             </p>
 
@@ -107,7 +107,7 @@ const mcmcExample = `Trainer(
 
             <p>
             Besides default cloning and splitting densification strategy,
-            we now support <a href="https://arxiv.org/abs/2404.09591">MCMC</a>
+            we now support <a href="https://arxiv.org/abs/2404.09591" target="_blank" rel="noopener">MCMC</a>
             (3D Gaussian Splatting as Markov Chain Monte Carlo) densification strategy.
             </p>
 
@@ -154,7 +154,7 @@ const mcmcExample = `Trainer(
             </p>
 
             <ul>
-                <li>depth normal consistency pins surface orientation: normals derived from the rendered depth map must agree with the per-Gaussian normals.</li>
+                <li>depth normal consistency pins surface orientation: normals derived from the rendered depth map must align with the per-Gaussian normals.</li>
                 <li>flattening surface: flattening each Gaussian along its smalles axis.</li>
             </ul>
 
@@ -182,17 +182,122 @@ const mcmcExample = `Trainer(
                 <figcaption>Sky Dome in a form of a sphere and a hemisphere.</figcaption>
             </figure>
 
-            Mention sky masks.
+            <p>
+            Depending on your environment (e.g. like this fountain above), you may want to prefer hemisphere instead of a sphere,
+            because a full sphere will pull parts of the geometry onto itself, making the ground less opaque.
+            By using hemisphere, the bottom half background is black and does not affect geometry at all.
+            </p>
+
+            <figure>
+                <div class="side-by-side">
+                    <video
+                        src={`${base}/video/no-sky-dome.mp4`}
+                        autoplay
+                        loop
+                        muted
+                        playsinline
+                    ></video>
+                    <video
+                        src={`${base}/video/with-sky-dome.mp4`}
+                        autoplay
+                        loop
+                        muted
+                        playsinline
+                    ></video>
+                </div>
+                <figcaption>
+                    Comparison of the reconstruction without and with Sky Dome after 3K iterations.
+                    With Sky Dome, sky is clearly disentangled from the fountain and does not float around.
+                </figcaption>
+            </figure>
+
+            <p>
+            The overhead of Sky Dome is negligible (~32K Gaussians) comparing to the rest of the scene (millions of Gaussians).
+            </p>
+
+            <p>
+            To further help disentangle the sky, we can use <b>sky segmentation masks</b> obtained from any off-the-shelf sky-segmentation models,
+            which should be part of the dataset under <code>{"<dataset-root>/sky/<FILENAME>.png"}</code> path.
+            </p>
+
+            <figure>
+                <div class="side-by-side">
+                    <img src={`${base}/img/fountain-rgb.jpg`} alt="Fountain photograph from the dataset" />
+                    <img src={`${base}/img/fountain-sky.png`} alt="Estimated sky mask" />
+                </div>
+                <figcaption>A dataset image and its estimated sky mask.</figcaption>
+            </figure>
+
+            <p>
+            This helps with small details around the edges of geometry, like leaves.
+            </p>
 
             <h3><p>Camera Frustum</p></h3>
 
+            <p>
+            Camera frustum visualization got a small quality-of-life update and now shows a miniature picture of
+            the image that the actual camera took.
+            </p>
+
+            <figure>
+                <video
+                    src={`${base}/video/camera-frustum.mp4`}
+                    autoplay
+                    loop
+                    muted
+                    playsinline
+                ></video>
+                <figcaption>Camera frustum visualization.</figcaption>
+            </figure>
+
             <h3><p>Some Other Niceties</p></h3>
 
-            - checkpointing<br>
-            - parametes configuration
+            <p>
+            List of other improvements in no particular order:
+            </p>
+
+            <ul>
+                <li>
+                    <b>Automatic checkpointing</b> saves checkpoints every N steps in the selected directory.
+                </li>
+                <li>
+                    Custom <b>hyperparameter configuration</b> (learning rate, loss weights, regularization, etc.)
+                    can be provided during dataset loading with <code>{"hyperparameters.toml"}</code> file
+                    (use <code>{"Load..."}</code>, <code>{"Save..."}</code> buttons).
+                    It can also be saved later on if you are satisfied with these values, helping reproducibility.
+                </li>
+                <li>
+                    <b>Camera path</b> for <b>Capture Mode</b> can now be saved / loaded and reproduced exactly accross training runs.
+                </li>
+                <li>
+                    UI shows how much <b>VRAM</b> is being used by the application.
+                </li>
+            </ul>
 
             <p>
-                <a href={`${base}/blog`}>← back to blog</a>
+            ---
+            </p>
+
+            <p>
+            This concludes GaussianSplatting.jl 2.0 update.<br>
+            Feel free to try and leave the feedback on the GitHub repo.<br>
+            </p>
+
+            <h3><p>Thanks! :)</p></h3>
+
+            <h3><p>Acknowledgements</p></h3>
+
+            <ul>
+                <li>
+                    <a href="https://lichtfeld.io/" target="_blank" rel="noopener">LichtFeld Studio</a> for inspiration!
+                </li>
+                <li>
+                    People who work on <a href="https://juliagpu.org/" target="_blank" rel="noopener">JuliaGPU ecosystem</a>.
+                </li>
+            </ul>
+
+            <p>
+                <a href={`${base}/blog`}>← back</a>
             </p>
         </article>
     </div>
