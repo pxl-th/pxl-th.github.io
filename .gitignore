@@ -1,5 +1,11 @@
 # build output
 dist/
+# copied from @playcanvas/supersplat-viewer by scripts/copy-viewer.mjs
+public/viewer/
+# splat assets - hosted on R2, kept locally for development
+public/splats/*.sog
+public/splats/*.voxel.json
+public/splats/*.voxel.bin
 # generated types
 .astro/
 

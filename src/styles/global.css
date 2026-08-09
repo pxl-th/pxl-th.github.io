@@ -42,6 +42,27 @@ nav {
     background: rgba(245, 241, 232, 0.75);
 }
 
+/* Full-bleed splat viewer. Body centers its children, so like header this
+   spans the viewport by taking width: 100% rather than breaking out of
+   .content, which is only as wide as the article. flex: none stops the
+   column layout from collapsing it to fit. */
+.splat {
+    flex: none;
+    width: 100%;
+    height: min(70vh, 800px);
+    min-height: 360px;
+    border-top: 1px solid rgba(46, 42, 36, 0.15);
+    border-bottom: 1px solid rgba(46, 42, 36, 0.15);
+    background: #f5f1e8;
+}
+
+.splat iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
 .c1 {
     position: absolute;
     right: 100%;
@@ -121,6 +142,85 @@ p {
     margin: 0 0 1.5rem;
     color: #5a5648;
     font-size: 0.9rem;
+}
+
+.post ul {
+    list-style: circle;
+    color: #5a5648;
+}
+
+/* Deliberately not .portrait, which pins a 500px height for the index page's
+   headshot. max-width keeps wide screenshots inside the 42rem column. */
+.post figure {
+    margin: 0 0 1rem;
+}
+
+.post img,
+.post video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* auto-flow column + auto-columns rather than a fixed template so any number of
+   children lands in one row, each an equal share, regardless of their differing
+   intrinsic sizes. min-width: 0 lets them shrink below intrinsic width; below
+   30rem they stack instead of getting unreadably thin. */
+.post .side-by-side {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 0.5rem;
+    align-items: start;
+}
+
+.post .side-by-side > img {
+    min-width: 0;
+    width: 100%;
+}
+
+@media (max-width: 30rem) {
+    .post .side-by-side {
+        grid-auto-flow: row;
+    }
+}
+
+.post figcaption {
+    margin-top: 0.25rem;
+    font-size: 0.9rem;
+    color: #5a5648;
+}
+
+/* Shiki highlights at build time and emits <pre class="astro-code"> with an
+   inline background-color, so clearing it needs !important to win. transparent
+   rather than #f5f1e8 so it tracks the page background through .content's
+   translucent layer and any future palette change.
+   overflow-x keeps long lines from widening the 42rem column. */
+.post pre {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    font-family: inherit;
+    line-height: 1.5;
+    border: 1px solid rgba(46, 42, 36, 0.15);
+    background: transparent !important;
+}
+
+/* The UA stylesheet sets font-family on <code> itself, so inheriting through
+   <pre> alone is not enough to reach IBM Plex Mono. */
+.post pre code {
+    font-family: inherit;
+}
+
+/* The whole page is already monospace, so inline code needs a tint and border
+   to read as code at all. :not(pre code) keeps it off the Shiki blocks. */
+.post code:not(pre code) {
+    font-family: inherit;
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+    border: 1px solid rgba(46, 42, 36, 0.15);
+    border-radius: 3px;
+    background: rgba(46, 42, 36, 0.05);
 }
 
 .projects li,

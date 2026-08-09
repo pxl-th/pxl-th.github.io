@@ -1,0 +1,173 @@
+// Copies the SuperSplat viewer's static app out of node_modules and into
+// public/viewer/, so Astro serves it (dev and build) as a self-contained
+// sub-app that pages embed via an iframe.
+//
+// The viewer is a standalone static app, not a component: index.html reads
+// URL params into window.sse, then imports and calls main() from index.js.
+// Copying at build time rather than committing keeps the ~3 MB out of git and
+// keeps public/viewer/ in sync with whatever version package.json pins.
+//
+// It also applies the patches below. The viewer hardcodes its orbit limits and
+// has no setting or URL param for them, and CameraManager keeps its controllers
+// private, so there is no runtime path to reach them. The package ships the app
+// unminified and documents these files as strings "for templating", so patching
+// during the copy is the supported extension route. Every patch asserts it
+// matched exactly once, so a package bump fails the build loudly instead of
+// silently reverting to unconstrained camera movement.
+//
+// Runs automatically via the predev/prebuild npm scripts.
+
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const src = join(root, 'node_modules', '@playcanvas', 'supersplat-viewer', 'public');
+const dest = join(root, 'public', 'viewer');
+
+// index.js.map is deliberately not copied: it is 6.3 MB, and index.js keeps its
+// sourceMappingURL comment, so the only cost is a devtools-only 404.
+const patch = (source, label, find, replace) => {
+    const count = source.split(find).length - 1;
+    if (count !== 1) {
+        throw new Error(
+            `copy-viewer: patch "${label}" matched ${count} times, expected 1.\n` +
+            'The upstream source changed - re-check the patch against ' +
+            'node_modules/@playcanvas/supersplat-viewer/public/ before releasing.'
+        );
+    }
+    return source.replace(find, replace);
+};
+
+// --- index.js ---------------------------------------------------------------
+
+let js = await readFile(join(src, 'index.js'), 'utf8');
+
+// Orbit limits are hardcoded in src/cameras/orbit-controller.ts. Read them from
+// window.sse.limits instead so each embed can set its own; yawRange is left
+// untouched upstream (defaults to +/-Infinity), so only apply it when given.
+js = patch(js, 'orbit limits',
+    `        this.controller.zoomRange = new Vec2(0.01, Infinity);
+        this.controller.pitchRange = new Vec2(-90, 90);`,
+    `        const __limits = globalThis.sse?.limits ?? {};
+        this.controller.zoomRange = new Vec2(...(__limits.zoom ?? [0.01, Infinity]));
+        this.controller.pitchRange = new Vec2(...(__limits.pitch ?? [-90, 90]));
+        if (__limits.yaw) this.controller.yawRange = new Vec2(...__limits.yaw);`);
+
+// getAnimTrack always synthesises a track when settings.animTracks is empty, so
+// hasAnimation is always true and the viewer starts in 'anim' mode with a
+// play/pause button. Returning null suppresses that whole path.
+js = patch(js, 'suppress auto anim track',
+    '        const animTrack = getAnimTrack(resetCamera, isObjectExperience);',
+    '        const animTrack = globalThis.sse?.limits?.noIntro ? null : getAnimTrack(resetCamera, isObjectExperience);');
+
+// Without an anim track the viewer picks orbit only when the camera starts
+// outside the scene bbox. Ours starts inside (the bbox spans the far-field
+// splats), so it would fall through to fly - or to walk once collision data
+// exists. Force orbit up front so the scene always opens on the saved pose.
+// walkAllowed is in scope here and is already settled, because CameraManager is
+// constructed after the collision data resolves - so walkOnly degrades to orbit
+// on its own if the voxel files fail to load.
+js = patch(js, 'force initial camera mode',
+    `        state.cameraMode = state.hasAnimation ? 'anim' : (isObjectExperience ? 'orbit' : (walkAllowed ? 'walk' : 'fly'));`,
+    `        state.cameraMode = (globalThis.sse?.limits?.walkOnly && walkAllowed) ? 'walk' : (globalThis.sse?.limits?.noIntro ? 'orbit' : (state.hasAnimation ? 'anim' : (isObjectExperience ? 'orbit' : (walkAllowed ? 'walk' : 'fly'))));`);
+
+// Clicking the scene refocuses the orbit centre on the picked surface, which
+// moves the camera in and wrecks a fixed composition. This handler is the one
+// choke point for both routes into it (single click and double click), so
+// blocking it here keeps the orbit centre pinned to settings.json's target.
+js = patch(js, 'suppress click-to-refocus',
+    `        events.on('pick', (position) => {
+            // switch to orbit camera on pick
+            state.cameraMode = 'orbit';`,
+    `        events.on('pick', (position) => {
+            if (globalThis.sse?.limits?.pinMode) return;
+            // switch to orbit camera on pick
+            state.cameraMode = 'orbit';`);
+
+// --- index.html -------------------------------------------------------------
+
+let html = await readFile(join(src, 'index.html'), 'utf8');
+
+// Parse the limits out of the URL alongside the viewer's own params.
+html = patch(html, 'parse limit params',
+    `            window.sse = {
+                config: sseConfig,
+                settings: fetch(settingsUrl).then(response => response.json())
+            };`,
+    `            // Camera limits, read by the patched orbit controller.
+            const parseRange = (name) => {
+                const value = url.searchParams.get(name);
+                if (!value) return undefined;
+                const parts = value.split(',').map(Number);
+                return parts.length === 2 && parts.every(n => !isNaN(n)) ? parts : undefined;
+            };
+
+            // orbitOnly / walkOnly pin the camera to one mode and hide the mode
+            // switcher; noIntro only skips the generated fly-around and opens
+            // on the saved pose, leaving every mode reachable. Both *Only
+            // flags imply noIntro.
+            const orbitOnly = url.searchParams.has('orbitOnly');
+            const walkOnly = url.searchParams.has('walkOnly');
+            const pinMode = orbitOnly ? 'orbit' : (walkOnly ? 'walk' : null);
+            const noIntro = !!pinMode || url.searchParams.has('noIntro');
+            if (pinMode) {
+                document.documentElement.classList.add('mode-locked');
+            }
+
+            window.sse = {
+                config: sseConfig,
+                settings: fetch(settingsUrl).then(response => response.json()),
+                limits: {
+                    pitch: parseRange('pitch'),
+                    yaw: parseRange('yaw'),
+                    zoom: parseRange('zoom'),
+                    orbitOnly,
+                    walkOnly,
+                    pinMode,
+                    noIntro
+                }
+            };`);
+
+// Mode can still be changed by keyboard shortcut and by picking in the scene.
+// One guard on the state change catches every route, rather than patching each
+// call site in camera-manager.
+html = patch(html, 'pin camera mode',
+    '                const viewer = await main(canvas, settingsJson, config);',
+    `                const viewer = await main(canvas, settingsJson, config);
+
+                if (window.sse.limits.pinMode) {
+                    const { state, events } = viewer.global;
+                    events.on('cameraMode:changed', (value) => {
+                        // Resolved per event, not up front: walkAllowed is only
+                        // known once the collision data has loaded.
+                        const pinned = window.sse.limits.pinMode;
+                        const target = (pinned === 'walk' && !state.walkAllowed) ? 'orbit' : pinned;
+                        if (value !== target) {
+                            state.cameraMode = target;
+                        }
+                    });
+                }`);
+
+// Hide the orbit/fly/walk switcher. The :has() rule drops the whole group so no
+// empty flex gap is left behind; the id rules are the fallback without :has().
+html = patch(html, 'hide mode buttons',
+    '        <link rel="stylesheet" href="./index.css">',
+    `        <link rel="stylesheet" href="./index.css">
+        <style>
+            html.mode-locked #orbitCamera,
+            html.mode-locked #flyCamera,
+            html.mode-locked #fpsCamera { display: none; }
+            html.mode-locked .buttonGroup:has(#orbitCamera) { display: none; }
+        </style>`);
+
+// --- write ------------------------------------------------------------------
+
+await mkdir(dest, { recursive: true });
+await Promise.all([
+    writeFile(join(dest, 'index.js'), js),
+    writeFile(join(dest, 'index.html'), html),
+    writeFile(join(dest, 'index.css'), await readFile(join(src, 'index.css')))
+]);
+
+console.log('copied 3 viewer files to public/viewer/ (5 patches applied)');

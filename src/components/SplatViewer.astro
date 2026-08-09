@@ -1,0 +1,91 @@
+---
+// Full-bleed embed of the SuperSplat viewer.
+//
+// The viewer is a standalone static app served from /viewer/ (put there by
+// scripts/copy-viewer.mjs), driven entirely by URL params, so it goes in an
+// iframe rather than being rendered inline.
+//
+// Each scene is a pair of files named after `name`:
+//   <name>.sog           the splat data, large - served from PUBLIC_SPLAT_BASE
+//   <name>.settings.json viewer config - always served from this site
+//
+// Only the big binary is hosted off-site; keeping settings in the repo means
+// camera poses and post effects are versioned with the page and deploy with it.
+// The camera limits below are read by patches scripts/copy-viewer.mjs applies
+// to the viewer - upstream has no setting or URL param for any of them.
+interface Props {
+    name: string;
+    title?: string;
+    height?: string;
+    /** Lock the camera to orbit: no fly/walk modes, no intro animation. */
+    orbitOnly?: boolean;
+    /**
+     * Lock the camera to first-person walk: no orbit/fly modes, no intro
+     * animation. Requires `collision`; falls back to orbit if the voxel data
+     * fails to load.
+     */
+    walkOnly?: boolean;
+    /**
+     * Skip the generated fly-around and open on the saved camera pose, while
+     * leaving fly/walk reachable from the toolbar. Implied by orbitOnly.
+     */
+    noIntro?: boolean;
+    /**
+     * Load <name>.voxel.json collision data, which unlocks walk mode. The
+     * loader infers a companion <name>.voxel.bin by swapping the extension,
+     * so both files must sit alongside the .sog.
+     */
+    collision?: boolean;
+    /** Elevation limits in degrees. Equal values lock the camera to one height. */
+    pitchRange?: [number, number];
+    /** Azimuth limits in degrees. Omit for free 360 rotation. */
+    yawRange?: [number, number];
+    /** Orbit distance limits in world units (metres). */
+    zoomRange?: [number, number];
+    /** Extra viewer URL params, e.g. { budget: '3' } to cap splat count. */
+    params?: Record<string, string>;
+}
+
+const {
+    name,
+    title = 'Gaussian splat scene',
+    height,
+    orbitOnly,
+    walkOnly,
+    noIntro,
+    collision,
+    pitchRange,
+    yawRange,
+    zoomRange,
+    params
+} = Astro.props;
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// Falls back to the local public/splats/ copy so dev works without R2. Uses ||
+// rather than ??: an unset repository variable reaches the build as an empty
+// string, not undefined, and that still has to fall back.
+const splatBase = (import.meta.env.PUBLIC_SPLAT_BASE || `${base}/splats`).replace(/\/$/, '');
+
+const query = new URLSearchParams({
+    content: `${splatBase}/${name}.sog`,
+    settings: `${base}/splats/${name}.settings.json`,
+    ...(orbitOnly ? { orbitOnly: '' } : {}),
+    ...(walkOnly ? { walkOnly: '' } : {}),
+    ...(noIntro ? { noIntro: '' } : {}),
+    ...(collision ? { collision: `${splatBase}/${name}.voxel.json` } : {}),
+    ...(pitchRange ? { pitch: pitchRange.join(',') } : {}),
+    ...(yawRange ? { yaw: yawRange.join(',') } : {}),
+    ...(zoomRange ? { zoom: zoomRange.join(',') } : {}),
+    ...params
+});
+---
+
+<section class="splat" style={height ? `height: ${height}` : undefined}>
+    <iframe
+        src={`${base}/viewer/index.html?${query}`}
+        title={title}
+        allow="xr-spatial-tracking; fullscreen; pointer-lock"
+        allowfullscreen
+    ></iframe>
+</section>

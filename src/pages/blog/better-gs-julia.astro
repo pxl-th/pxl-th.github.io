@@ -1,0 +1,304 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SplatViewer from '../../components/SplatViewer.astro';
+import { Code } from 'astro:components';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const mcmcExample = `Trainer(
+    rasterizer, gaussians, dataset, opt_params;
+    strategy=MCMCStrategy(; kwargs...),
+)`;
+---
+
+<Layout title="Better Gaussian Splatting in Julia">
+    <header>
+        <nav>
+            <a href={`${base}/`}>main</a>
+            <a href={`${base}/blog`}>blog</a>
+        </nav>
+    </header>
+    <SplatViewer
+        name="fountain"
+        title="Fountain — Gaussian splat scene"
+        walkOnly
+        collision
+    />
+    <div class="content">
+        <article class="post">
+            <h1>Better Gaussian Splatting in Julia</h1>
+            <p class="post-meta">
+            <b>use WASD + Mouse or tap on the screen to walk around :)</b><br>
+            Amulet of St. Michael in Kyiv, Ukraine<br>
+            (reconstructed with GaussianSplatting.jl, ~6M Gaussians)<br>
+            </p>
+
+            <p>
+            <a href="https://github.com/JuliaNeuralGraphics/GaussianSplatting.jl" target="_blank" rel="noopener">GaussianSplatting.jl</a> <b>2.0</b>
+            release brings notable quality of life improvements and new capabilities.
+            </p>
+
+            <h3><p>Same code, multiple GPU backends</p></h3>
+
+            <p>
+            Written entirely in Julia it supports following GPU backends:
+            </p>
+
+            <ul>
+                <li>AMD GPU (AMDGPU.jl)</li>
+                <li>NVIDIA GPU (CUDA.jl)</li>
+                <li>MacBook GPU(Metal.jl)</li>
+            </ul>
+
+            <p>
+            This is achieved with
+            <a href="https://github.com/JuliaGPU/KernelAbstractions.jl" target="_blank" rel="noopener">KernelAbstractions.jl</a>
+            that allows writing a single kernel that get's compiled to a specific target.
+            </p>
+
+            <h3><p>Multithreaded UI</p></h3>
+
+            <p>
+            To avoid freezing the app during heavy work
+            (such as JIT compilation of GPU kernels, dataset loading, etc.)
+            the app is now split into two threads:
+            </p>
+
+            <ul>
+                <li>Frontend: handles the UI, performs OpenGL rendering, dispatches commands to the backend.</li>
+                <li>Backend: performs Gaussian Splatting rendering, training, dataset loading, etc.</li>
+            </ul>
+
+            <p>
+            In this way, the UI always stays responsive and user can interact with it, even if there are long-standing jobs in the background.
+            It also shows progress bars that something is happening with tips, instead of becoming frozen like before.
+            </p>
+
+            <figure>
+                <img
+                    src={`${base}/img/dataset-loading.gif`}
+                />
+                <figcaption>The spinner keeps animating while the dataset loads on the backend thread</figcaption>
+            </figure>
+
+            <figure>
+                <img
+                    src={`${base}/img/training-spinner.gif`}
+                />
+                <figcaption>and when JIT-compiling kernels for the first training iteration.</figcaption>
+            </figure>
+
+            <p>
+            UI/UX itself got a big update and is now displays loss plots live during training along with all hyperparameters.
+            </p>
+
+            <figure>
+                <video
+                    src={`${base}/video/training-dynamics.mp4`}
+                    autoplay
+                    loop
+                    muted
+                    playsinline
+                ></video>
+                <figcaption>Loss plots and hyperparameters update live while training runs.</figcaption>
+            </figure>
+
+            <h3><p>Markov Chain Monte Carlo Strategy</p></h3>
+
+            <p>
+            Besides default cloning and splitting densification strategy,
+            we now support <a href="https://arxiv.org/abs/2404.09591" target="_blank" rel="noopener">MCMC</a>
+            (3D Gaussian Splatting as Markov Chain Monte Carlo) densification strategy.
+            </p>
+
+            <p>
+            It allows precise control of the number of Gaussians in the scene
+            and generally relies less on having a good initialization.
+            </p>
+
+            <p>
+            Users can select MCMC during dataset loading or in the code with:
+            </p>
+
+            <Code lang="julia" theme="min-light" code={mcmcExample} />
+
+            <h3><p>Depth & Geometry Supervision</p></h3>
+
+            <p>
+            To improve reconstructed geometry, we can provide <b>depth priors</b> using off-the-shelf depth estimation models.
+            Depth images should be part of the dataset, under <code>{"<dataset-root>/depths/<FILENAME>.png"}</code> path.
+            </p>
+
+            <figure>
+                <div class="side-by-side">
+                    <img src={`${base}/img/fountain-rgb.jpg`} alt="Fountain photograph from the dataset" />
+                    <img src={`${base}/img/fountain-depth.png`} alt="Estimated depth map for the fountain scene" />
+                </div>
+                <figcaption>A dataset image and its estimated depth prior using Depth-Anything 3.</figcaption>
+            </figure>
+
+            <p>
+            To enable depth supervision, either toggle it in UI or with <code>{"OptimizationParams(; use_depth_loss=true)"}</code>.
+            Depth maps then provide supervision during training resulting in better geometry and reduced number of floaters.
+            </p>
+
+            <p>
+            Since depth may vary between frames, all depth maps are first refitted against prior point cloud to the same scale.
+            The ones that fail refitting are discarded and not used for supervision.
+            </p>
+
+            <p>
+            To further improve geometry and smoothness, we can perform <b>geometry regularization</b> to constrain the shape of the surface,
+            while depth supervision constrains only its location.
+            It can be enabled in the UI or with <code>{"OptimizationParams(; use_normal_loss=true)"}</code> and performs two things:
+            </p>
+
+            <ul>
+                <li>depth normal consistency pins surface orientation: normals derived from the rendered depth map must align with the per-Gaussian normals.</li>
+                <li>flattening surface: flattening each Gaussian along its smalles axis.</li>
+            </ul>
+
+            <figure>
+                <div class="side-by-side">
+                    <img src={`${base}/img/rendered-image.png`} />
+                    <img src={`${base}/img/rendered-depth.png`} />
+                    <img src={`${base}/img/rendered-normals.png`} />
+                </div>
+                <figcaption>A rendered image, depth and normals of the model with geometry regularization enabled.</figcaption>
+            </figure>
+
+            <h3><p>Sky Dome</p></h3>
+
+            <p>
+            To help disentangle sky / distant background and reduce floaters, GaussianSplatting.jl now supports Sky Dome,
+            which is a frozen shell of Gaussians at a large radius, rendered in its own pass and composited behind the scene.
+            </p>
+
+            <figure>
+                <div class="side-by-side">
+                    <img src={`${base}/img/sky-dome-sphere.png`} />
+                    <img src={`${base}/img/sky-dome-hemisphere.png`} />
+                </div>
+                <figcaption>Sky Dome in a form of a sphere and a hemisphere.</figcaption>
+            </figure>
+
+            <p>
+            Depending on your environment (e.g. like this fountain above), you may want to prefer hemisphere instead of a sphere,
+            because a full sphere will pull parts of the geometry onto itself, making the ground less opaque.
+            By using hemisphere, the bottom half background is black and does not affect geometry at all.
+            </p>
+
+            <figure>
+                <div class="side-by-side">
+                    <video
+                        src={`${base}/video/no-sky-dome.mp4`}
+                        autoplay
+                        loop
+                        muted
+                        playsinline
+                    ></video>
+                    <video
+                        src={`${base}/video/with-sky-dome.mp4`}
+                        autoplay
+                        loop
+                        muted
+                        playsinline
+                    ></video>
+                </div>
+                <figcaption>
+                    Comparison of the reconstruction without and with Sky Dome after 3K iterations.
+                    With Sky Dome, sky is clearly disentangled from the fountain and does not float around.
+                </figcaption>
+            </figure>
+
+            <p>
+            The overhead of Sky Dome is negligible (~32K Gaussians) comparing to the rest of the scene (millions of Gaussians).
+            </p>
+
+            <p>
+            To further help disentangle the sky, we can use <b>sky segmentation masks</b> obtained from any off-the-shelf sky-segmentation models,
+            which should be part of the dataset under <code>{"<dataset-root>/sky/<FILENAME>.png"}</code> path.
+            </p>
+
+            <figure>
+                <div class="side-by-side">
+                    <img src={`${base}/img/fountain-rgb.jpg`} alt="Fountain photograph from the dataset" />
+                    <img src={`${base}/img/fountain-sky.png`} alt="Estimated sky mask" />
+                </div>
+                <figcaption>A dataset image and its estimated sky mask.</figcaption>
+            </figure>
+
+            <p>
+            This helps with small details around the edges of geometry, like leaves.
+            </p>
+
+            <h3><p>Camera Frustum</p></h3>
+
+            <p>
+            Camera frustum visualization got a small quality-of-life update and now shows a miniature picture of
+            the image that the actual camera took.
+            </p>
+
+            <figure>
+                <video
+                    src={`${base}/video/camera-frustum.mp4`}
+                    autoplay
+                    loop
+                    muted
+                    playsinline
+                ></video>
+                <figcaption>Camera frustum visualization.</figcaption>
+            </figure>
+
+            <h3><p>Some Other Niceties</p></h3>
+
+            <p>
+            List of other improvements in no particular order:
+            </p>
+
+            <ul>
+                <li>
+                    <b>Automatic checkpointing</b> saves checkpoints every N steps in the selected directory.
+                </li>
+                <li>
+                    Custom <b>hyperparameter configuration</b> (learning rate, loss weights, regularization, etc.)
+                    can be provided during dataset loading with <code>{"hyperparameters.toml"}</code> file
+                    (use <code>{"Load..."}</code>, <code>{"Save..."}</code> buttons).
+                    It can also be saved later on if you are satisfied with these values, helping reproducibility.
+                </li>
+                <li>
+                    <b>Camera path</b> for <b>Capture Mode</b> can now be saved / loaded and reproduced exactly accross training runs.
+                </li>
+                <li>
+                    UI shows how much <b>VRAM</b> is being used by the application.
+                </li>
+            </ul>
+
+            <p>
+            ---
+            </p>
+
+            <p>
+            This concludes GaussianSplatting.jl 2.0 update.<br>
+            Feel free to try and leave the feedback on the GitHub repo.<br>
+            </p>
+
+            <h3><p>Thanks! :)</p></h3>
+
+            <h3><p>Acknowledgements</p></h3>
+
+            <ul>
+                <li>
+                    <a href="https://lichtfeld.io/" target="_blank" rel="noopener">LichtFeld Studio</a> for inspiration!
+                </li>
+                <li>
+                    People who work on <a href="https://juliagpu.org/" target="_blank" rel="noopener">JuliaGPU ecosystem</a>.
+                </li>
+            </ul>
+
+            <p>
+                <a href={`${base}/blog`}>← back</a>
+            </p>
+        </article>
+    </div>
+</Layout>

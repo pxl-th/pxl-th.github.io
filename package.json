@@ -6,13 +6,16 @@
     "node": ">=18.17.1"
   },
   "scripts": {
+    "predev": "node scripts/copy-viewer.mjs",
     "dev": "astro dev",
+    "prebuild": "node scripts/copy-viewer.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@playcanvas/supersplat-viewer": "^1.28.0",
     "astro": "^4.16.0"
   }
 }
