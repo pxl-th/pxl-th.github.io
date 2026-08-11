@@ -72,6 +72,26 @@ js = patch(js, 'force initial camera mode',
     `        state.cameraMode = state.hasAnimation ? 'anim' : (isObjectExperience ? 'orbit' : (walkAllowed ? 'walk' : 'fly'));`,
     `        state.cameraMode = (globalThis.sse?.limits?.walkOnly && walkAllowed) ? 'walk' : (globalThis.sse?.limits?.noIntro ? 'orbit' : (state.hasAnimation ? 'anim' : (isObjectExperience ? 'orbit' : (walkAllowed ? 'walk' : 'fly'))));`);
 
+// Right-drag (and two-finger touch drag) slides the orbit centre sideways, which
+// walks a product off its pedestal with no way back. These are the two places a
+// drag turns into a pan - the mouse/touch source and the trackpad source - and
+// neither is reachable from outside, so both get gated here. Pinch-to-zoom is
+// unaffected: MultiTouchSource emits it as its own `pinch` delta, not as a pan.
+js = patch(js, 'suppress mouse pan',
+    '        const pan = this._buttons[2] || +(button[2] === -1) || +(touchCount > 1);',
+    `        const pan = globalThis.sse?.limits?.noPan ? 0 :
+            (this._buttons[2] || +(button[2] === -1) || +(touchCount > 1));`);
+
+js = patch(js, 'suppress trackpad pan',
+    `        else {
+            this._pan[0] += deltaX;
+            this._pan[1] += deltaY;
+        }`,
+    `        else if (!globalThis.sse?.limits?.noPan) {
+            this._pan[0] += deltaX;
+            this._pan[1] += deltaY;
+        }`);
+
 // Clicking the scene refocuses the orbit centre on the picked surface, which
 // moves the camera in and wrecks a fixed composition. This handler is the one
 // choke point for both routes into it (single click and double click), so
@@ -109,6 +129,7 @@ html = patch(html, 'parse limit params',
             // flags imply noIntro.
             const orbitOnly = url.searchParams.has('orbitOnly');
             const walkOnly = url.searchParams.has('walkOnly');
+            const noPan = url.searchParams.has('noPan');
             const pinMode = orbitOnly ? 'orbit' : (walkOnly ? 'walk' : null);
             const noIntro = !!pinMode || url.searchParams.has('noIntro');
             if (pinMode) {
@@ -124,6 +145,7 @@ html = patch(html, 'parse limit params',
                     zoom: parseRange('zoom'),
                     orbitOnly,
                     walkOnly,
+                    noPan,
                     pinMode,
                     noIntro
                 }
@@ -170,4 +192,4 @@ await Promise.all([
     writeFile(join(dest, 'index.css'), await readFile(join(src, 'index.css')))
 ]);
 
-console.log('copied 3 viewer files to public/viewer/ (5 patches applied)');
+console.log('copied 3 viewer files to public/viewer/ (7 patches applied)');

@@ -31,6 +31,11 @@ interface Props {
      */
     noIntro?: boolean;
     /**
+     * Drop right-drag and two-finger drag, so dragging can only orbit and the
+     * orbit centre stays where settings.json put it. Pinch-to-zoom still works.
+     */
+    noPan?: boolean;
+    /**
      * Load <name>.voxel.json collision data, which unlocks walk mode. The
      * loader infers a companion <name>.voxel.bin by swapping the extension,
      * so both files must sit alongside the .sog.
@@ -53,6 +58,7 @@ const {
     orbitOnly,
     walkOnly,
     noIntro,
+    noPan,
     collision,
     pitchRange,
     yawRange,
@@ -73,6 +79,7 @@ const query = new URLSearchParams({
     ...(orbitOnly ? { orbitOnly: '' } : {}),
     ...(walkOnly ? { walkOnly: '' } : {}),
     ...(noIntro ? { noIntro: '' } : {}),
+    ...(noPan ? { noPan: '' } : {}),
     ...(collision ? { collision: `${splatBase}/${name}.voxel.json` } : {}),
     ...(pitchRange ? { pitch: pitchRange.join(',') } : {}),
     ...(yawRange ? { yaw: yawRange.join(',') } : {}),

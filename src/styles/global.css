@@ -64,6 +64,90 @@ nav {
     border: 0;
 }
 
+/* Store layout: viewer beside the product copy. Wider than .post's 42rem,
+   which is a measure tuned for prose, but still capped so the two columns
+   stay a readable pair on a large monitor. */
+.product {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+    width: 100%;
+    max-width: 64rem;
+}
+
+/* Pulls the viewer back out of full-bleed: inside a grid cell it takes the
+   column's width, so it only needs its own height. The hairline top/bottom
+   borders that separate a full-width band from the prose around it would just
+   box the product in here, so they go. */
+.product .splat {
+    height: min(60vh, 560px);
+    border: 0;
+}
+
+/* .content h1 is the 3.5rem homepage title; a product name wants the smaller
+   article size instead. */
+.product h1 {
+    margin: 0 0 0.25rem;
+    font-size: 2rem;
+    font-weight: normal;
+}
+
+.product-meta {
+    margin: 0 0 1.5rem;
+    color: #5a5648;
+    font-size: 0.9rem;
+}
+
+.price {
+    margin: 1.5rem 0 0.75rem;
+    color: #2e2a24;
+}
+
+/* Buttons appear nowhere else on the site, so this borrows the flat bordered
+   tint of inline code rather than introducing a shadowed control. Font has to
+   be set explicitly - form elements do not inherit it. */
+.buy {
+    font-family: inherit;
+    font-size: 1rem;
+    color: #2e2a24;
+    padding: 0.5rem 2rem;
+    border: 1px solid rgba(46, 42, 36, 0.15);
+    border-radius: 3px;
+    background: rgba(46, 42, 36, 0.05);
+    cursor: pointer;
+}
+
+.buy:hover:not(:disabled) {
+    color: #4a7c3f;
+    border-color: #4a7c3f;
+}
+
+.buy:disabled {
+    color: #5a5648;
+    cursor: default;
+}
+
+.buy-note {
+    margin: 0.75rem 0 0;
+    font-size: 0.9rem;
+}
+
+/* The button is inline-block, so a following paragraph would otherwise sit
+   right on its baseline. */
+.product-back {
+    margin-top: 2rem;
+}
+
+/* Two columns run out of room well before the 30rem breakpoint below - the
+   copy column hits its min-content width first - so the store stacks earlier. */
+@media (max-width: 48rem) {
+    .product {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+}
+
 .c1 {
     position: absolute;
     right: 100%;
@@ -151,7 +235,7 @@ p {
     font-size: 0.9rem;
 }
 
-.post ul {
+.post, .product-info ul {
     list-style: circle;
     color: #5a5648;
 }

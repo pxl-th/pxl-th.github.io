@@ -1,0 +1,91 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SplatViewer from '../../components/SplatViewer.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// public/splats/aqyar-cup.sog is gitignored like the other splats, so the
+// command that produced it lives here - it is the only record of how the scan was cleaned up:
+//
+// npx @playcanvas/splat-transform@3.3.0 cup-default-strategy-60k-depth-0-sh-random-bg.ply -t 0.436,1.2,-2.4 -r 59,-75,2 public/splats/aqyar-cup.sog --overwrite
+//
+// -t recentres it on the origin so the camera can just look at 0,0,0.
+// -r stands it upright.
+---
+
+<Layout title="Concept Store">
+    <header>
+        <nav>
+            <a href={`${base}/`}>main</a>
+            <a href={`${base}/blog`}>blog</a>
+        </nav>
+    </header>
+    <div class="content">
+        <div class="product">
+            <SplatViewer
+                name="aqyar-cup"
+                title="Aqyar Cup — Gaussian splat scene"
+                orbitOnly
+                noPan
+                zoomRange={[4, 4]}
+                pitchRange={[-70, -10]}
+            />
+            <div class="product-info">
+                <h1>Coffee Mug</h1>
+                <p class="product-meta">
+                reconstructed with <a href="https://pxl-th.github.io/blog/better-gs-julia/" target="_blank" rel="noopener">GaussianSplatting.jl</a><br>
+                drag to rotate · scroll to zoom
+                </p>
+
+                <p>
+                From Aqyar Ceramics
+                </p>
+
+                <p>
+                here goes the description<br>
+                ..........................<br>
+                ..........................<br>
+                ..........................<br>
+                ..........................<br>
+                end of description
+                </p>
+
+                <p>
+                product info:
+                </p>
+
+                <p>
+                ∪ volume: 250 ml<br>
+                ⌀ diameter: 8 cm<br>
+                [ height: 8 cm<br>
+                ⊥ weight: 150 g
+                </p>
+
+                <p class="price">₴ the number</p>
+
+                <button class="buy" type="button">buy</button>
+                <p class="buy-note" hidden>
+                this is a *concept*, go to the real store<br>
+                <a href="https://aqyarceramics.com/" target="_blank" rel="noopener">
+                    aqyarceramics.com
+                </a>
+                </p>
+
+                <p class="product-back">
+                    <a href={`${base}/blog`}>← back</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    // The store is a mock-up; the button only owns up to that.
+    const buy = document.querySelector<HTMLButtonElement>('.buy');
+    const note = document.querySelector<HTMLParagraphElement>('.buy-note');
+
+    buy?.addEventListener('click', () => {
+        if (note) note.hidden = false;
+        buy.disabled = true;
+    });
+</script>
