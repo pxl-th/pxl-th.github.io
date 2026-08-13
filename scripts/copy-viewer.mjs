@@ -92,6 +92,21 @@ js = patch(js, 'suppress trackpad pan',
             this._pan[1] += deltaY;
         }`);
 
+// Hand the orbit controller to the idle-turntable loop in index.html, which has
+// no other route to it - CameraManager keeps its controllers private. That loop
+// drives _targetRootPose, the same pose a drag moves, so the damping and the
+// pitch/yaw limits set above apply to the automatic motion too.
+js = patch(js, 'expose orbit controller',
+    `        this.controller.zoomDamping = DEFAULT_CONTROLLER_DAMPING;
+    }
+    onEnter(camera) {`,
+    `        this.controller.zoomDamping = DEFAULT_CONTROLLER_DAMPING;
+        if (globalThis.sse?.limits?.autoOrbit) {
+            globalThis.__sseOrbitController = this.controller;
+        }
+    }
+    onEnter(camera) {`);
+
 // Clicking the scene refocuses the orbit centre on the picked surface, which
 // moves the camera in and wrecks a fixed composition. This handler is the one
 // choke point for both routes into it (single click and double click), so
@@ -130,6 +145,8 @@ html = patch(html, 'parse limit params',
             const orbitOnly = url.searchParams.has('orbitOnly');
             const walkOnly = url.searchParams.has('walkOnly');
             const noPan = url.searchParams.has('noPan');
+            const autoOrbit = Number(url.searchParams.get('autoOrbit')) || 0;
+            const autoOrbitDelay = Number(url.searchParams.get('autoOrbitDelay')) || 3000;
             const pinMode = orbitOnly ? 'orbit' : (walkOnly ? 'walk' : null);
             const noIntro = !!pinMode || url.searchParams.has('noIntro');
             if (pinMode) {
@@ -146,10 +163,56 @@ html = patch(html, 'parse limit params',
                     orbitOnly,
                     walkOnly,
                     noPan,
+                    autoOrbit,
+                    autoOrbitDelay,
                     pinMode,
                     noIntro
                 }
             };`);
+
+// Idle turntable. Deliberately not the viewer's own rotate track: that is a
+// camera *mode* ('anim'), so it fights the pinned mode above and a single touch
+// ends it for good. Nudging the orbit target instead means the automatic motion
+// and a drag are the same operation, so handing over in either direction needs
+// no state - the drag simply outruns the nudge, and the nudge resumes when the
+// drag stops. Must run before the 'pin camera mode' patch below, which rewrites
+// the main() line this one anchors on.
+html = patch(html, 'idle auto-orbit',
+    `                const viewer = await main(canvas, settingsJson, config);
+            });`,
+    `                const viewer = await main(canvas, settingsJson, config);
+
+                if (window.sse.limits.autoOrbit) {
+                    const { autoOrbit, autoOrbitDelay } = window.sse.limits;
+                    let last = performance.now();
+                    let resumeAt = last + autoOrbitDelay;
+
+                    // A bare pointermove is not interaction - without the
+                    // buttons test, a cursor left resting over the canvas would
+                    // stall the turntable for as long as it sat there.
+                    const bump = (event) => {
+                        if (event.type === 'pointermove' && !event.buttons) return;
+                        resumeAt = performance.now() + autoOrbitDelay;
+                    };
+                    for (const type of ['pointerdown', 'pointermove', 'pointerup', 'wheel', 'touchstart', 'touchmove', 'keydown']) {
+                        window.addEventListener(type, bump, { passive: true, capture: true });
+                    }
+
+                    // requestAnimationFrame rather than a timer so the spin
+                    // stops paying for itself while the tab is in the
+                    // background, and stays smooth when it is not.
+                    const spin = (now) => {
+                        const dt = Math.min(0.1, (now - last) / 1000);
+                        last = now;
+                        const controller = globalThis.__sseOrbitController;
+                        if (controller && now >= resumeAt) {
+                            controller._targetRootPose.rotate({ x: 0, y: autoOrbit * dt, z: 0 });
+                        }
+                        requestAnimationFrame(spin);
+                    };
+                    requestAnimationFrame(spin);
+                }
+            });`);
 
 // Mode can still be changed by keyboard shortcut and by picking in the scene.
 // One guard on the state change catches every route, rather than patching each
@@ -192,4 +255,4 @@ await Promise.all([
     writeFile(join(dest, 'index.css'), await readFile(join(src, 'index.css')))
 ]);
 
-console.log('copied 3 viewer files to public/viewer/ (7 patches applied)');
+console.log('copied 3 viewer files to public/viewer/ (9 patches applied)');

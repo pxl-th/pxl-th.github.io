@@ -8,6 +8,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 // command that produced it lives here - it is the only record of how the scan was cleaned up:
 //
 // npx @playcanvas/splat-transform@3.3.0 cup-default-strategy-60k-depth-0-sh-random-bg.ply -t 0.436,1.2,-2.4 -r 59,-75,2 public/splats/aqyar-cup.sog --overwrite
+// npx @playcanvas/splat-transform@3.3.0 /home/pxlth/GaussianSplattingModels/aqyar-cup/cup-default-strategy-30k-depth-1-sh-random-bg-geometry-from-10k.ply -t 0.436,1.2,-2.4 -r 59,-75,2 public/splats/aqyar-cup.sog --overwrite
 //
 // -t recenters it on the origin so the camera can just look at 0,0,0.
 // -r stands it upright.
@@ -27,6 +28,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
                 title="Aqyar Cup — Gaussian splat scene"
                 orbitOnly
                 noPan
+                autoOrbit={10}
+                autoOrbitDelay={1000}
                 zoomRange={[4, 4]}
                 pitchRange={[-70, -10]}
             />

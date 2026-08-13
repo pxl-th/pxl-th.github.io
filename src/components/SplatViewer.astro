@@ -36,6 +36,13 @@ interface Props {
      */
     noPan?: boolean;
     /**
+     * Turn the camera at this many degrees per second once the viewer has been
+     * idle, and hand back the moment someone drags. Omit for a still camera.
+     */
+    autoOrbit?: number;
+    /** Milliseconds of no input before autoOrbit picks up again. Default 3000. */
+    autoOrbitDelay?: number;
+    /**
      * Load <name>.voxel.json collision data, which unlocks walk mode. The
      * loader infers a companion <name>.voxel.bin by swapping the extension,
      * so both files must sit alongside the .sog.
@@ -59,6 +66,8 @@ const {
     walkOnly,
     noIntro,
     noPan,
+    autoOrbit,
+    autoOrbitDelay,
     collision,
     pitchRange,
     yawRange,
@@ -80,6 +89,8 @@ const query = new URLSearchParams({
     ...(walkOnly ? { walkOnly: '' } : {}),
     ...(noIntro ? { noIntro: '' } : {}),
     ...(noPan ? { noPan: '' } : {}),
+    ...(autoOrbit ? { autoOrbit: String(autoOrbit) } : {}),
+    ...(autoOrbitDelay ? { autoOrbitDelay: String(autoOrbitDelay) } : {}),
     ...(collision ? { collision: `${splatBase}/${name}.voxel.json` } : {}),
     ...(pitchRange ? { pitch: pitchRange.join(',') } : {}),
     ...(yawRange ? { yaw: yawRange.join(',') } : {}),
