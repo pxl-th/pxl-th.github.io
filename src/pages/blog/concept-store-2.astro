@@ -1,0 +1,89 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SplatViewer from '../../components/SplatViewer.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// public/splats/aqyar-bowl.sog is gitignored like the other splats, so the
+// command that produced it lives here - it is the only record of how the scan was cleaned up:
+//
+// npx @playcanvas/splat-transform@3.3.0 /home/pxlth/GaussianSplattingModels/aqyar-bowl/bowl-30k-depth-geometry-mask.ply -t 0.018,1.793,-1.906 -r 124.79,22.85,12.06 public/splats/aqyar-bowl.sog --overwrite
+//
+// -t recenters it on the origin so the camera can just look at 0,0,0.
+// -r stands it upright.
+---
+
+<Layout title="Concept Store">
+    <header>
+        <nav>
+            <a href={`${base}/`}>main</a>
+            <a href={`${base}/blog`}>blog</a>
+        </nav>
+    </header>
+    <div class="content">
+        <div class="product">
+            <SplatViewer
+                name="aqyar-bowl"
+                title="Aqyar Bowl — Gaussian splat scene"
+                orbitOnly
+                noPan
+                autoOrbit={10}
+                autoOrbitDelay={1000}
+                zoomRange={[4, 4]}
+                pitchRange={[-70, -20]}
+            />
+            <div class="product-info">
+                <h1>Breakfast Bowl</h1>
+                <p class="product-meta">
+                reconstructed with <a href="https://pxl-th.github.io/blog/better-gs-julia/" target="_blank" rel="noopener">GaussianSplatting.jl</a><br>
+                drag to rotate
+                </p>
+
+                <p>
+                Breakfast bowl by <a href="https://aqyarceramics.com/" target="_blank" rel="noopener">Aqyar Ceramics</a>.
+                </p>
+
+                <p>
+                here goes the description<br>
+                .........................<br>
+                .........................<br>
+                .........................<br>
+                .........................<br>
+                .......end of description
+                </p>
+
+                <p>
+                product info:
+                </p>
+
+                <p>
+                ⌀ diameter: 21-22 cm<br>
+                [ height: 4 cm<br>
+                </p>
+
+                <p class="price">₴ the number</p>
+
+                <button class="buy" type="button">buy</button>
+                <p class="buy-note" hidden>
+                this is a *concept*<br>
+                go to the real <a href="https://aqyarceramics.com/" target="_blank" rel="noopener">store</a>
+                </p>
+
+                <p class="product-back">
+                    <a href={`${base}/blog`}>← back</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    // The store is a mock-up; the button only owns up to that.
+    const buy = document.querySelector<HTMLButtonElement>('.buy');
+    const note = document.querySelector<HTMLParagraphElement>('.buy-note');
+
+    buy?.addEventListener('click', () => {
+        if (note) note.hidden = false;
+        buy.disabled = true;
+    });
+</script>
