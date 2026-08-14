@@ -44,6 +44,12 @@ interface Props {
      */
     fitFov?: boolean;
     /**
+     * Drop the viewer's whole overlay - the button bar and the controls and
+     * settings popups it opens - leaving nothing but the scene. Dragging,
+     * zooming and the keyboard shortcuts still work; only the UI is gone.
+     */
+    noControls?: boolean;
+    /**
      * Turn the camera at this many degrees per second once the viewer has been
      * idle, and hand back the moment someone drags. Omit for a still camera.
      */
@@ -75,6 +81,7 @@ const {
     noIntro,
     noPan,
     fitFov,
+    noControls,
     autoOrbit,
     autoOrbitDelay,
     collision,
@@ -99,6 +106,7 @@ const query = new URLSearchParams({
     ...(noIntro ? { noIntro: '' } : {}),
     ...(noPan ? { noPan: '' } : {}),
     ...(fitFov ? { fitFov: '' } : {}),
+    ...(noControls ? { noControls: '' } : {}),
     ...(autoOrbit ? { autoOrbit: String(autoOrbit) } : {}),
     ...(autoOrbitDelay ? { autoOrbitDelay: String(autoOrbitDelay) } : {}),
     ...(collision ? { collision: `${splatBase}/${name}.voxel.json` } : {}),

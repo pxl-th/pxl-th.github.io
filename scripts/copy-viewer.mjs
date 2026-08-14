@@ -160,12 +160,16 @@ html = patch(html, 'parse limit params',
             const walkOnly = url.searchParams.has('walkOnly');
             const noPan = url.searchParams.has('noPan');
             const fitFov = url.searchParams.has('fitFov');
+            const noControls = url.searchParams.has('noControls');
             const autoOrbit = Number(url.searchParams.get('autoOrbit')) || 0;
             const autoOrbitDelay = Number(url.searchParams.get('autoOrbitDelay')) || 3000;
             const pinMode = orbitOnly ? 'orbit' : (walkOnly ? 'walk' : null);
             const noIntro = !!pinMode || url.searchParams.has('noIntro');
             if (pinMode) {
                 document.documentElement.classList.add('mode-locked');
+            }
+            if (noControls) {
+                document.documentElement.classList.add('no-controls');
             }
 
             window.sse = {
@@ -179,6 +183,7 @@ html = patch(html, 'parse limit params',
                     walkOnly,
                     noPan,
                     fitFov,
+                    noControls,
                     autoOrbit,
                     autoOrbitDelay,
                     pinMode,
@@ -252,7 +257,12 @@ html = patch(html, 'pin camera mode',
 
 // Hide the orbit/fly/walk switcher. The :has() rule drops the whole group so no
 // empty flex gap is left behind; the id rules are the fallback without :has().
-html = patch(html, 'hide mode buttons',
+//
+// no-controls goes further and drops the whole overlay: the button bar and both
+// panels it opens. These are toggled by adding and removing a `hidden` class,
+// never inline styles, so a plain display:none here always wins. The loading
+// bar is left alone - it is progress, not a control.
+html = patch(html, 'hide chrome',
     '        <link rel="stylesheet" href="./index.css">',
     `        <link rel="stylesheet" href="./index.css">
         <style>
@@ -260,6 +270,11 @@ html = patch(html, 'hide mode buttons',
             html.mode-locked #flyCamera,
             html.mode-locked #fpsCamera { display: none; }
             html.mode-locked .buttonGroup:has(#orbitCamera) { display: none; }
+
+            html.no-controls #controlsWrap,
+            html.no-controls #infoPanel,
+            html.no-controls #settingsPanel,
+            html.no-controls #walkHint { display: none; }
         </style>`);
 
 // --- write ------------------------------------------------------------------
