@@ -107,6 +107,20 @@ js = patch(js, 'expose orbit controller',
     }
     onEnter(camera) {`);
 
+// The viewer applies settings.json's fov to the *longer* viewport axis, so the
+// shorter one is always tighter than the saved framing - a cover fit, which
+// crops. That is fine for a full-bleed landscape band, but a viewer that is
+// taller than it is wide (a phone, or the product column once it stacks) then
+// crops sideways and cuts the subject off. fitFov flips it to a contain fit:
+// the fov goes on the shorter axis instead, so the saved framing is the
+// tightest the subject ever gets and it stays whole at any aspect. applyCamera
+// runs every frame, so this tracks live resizes as well.
+js = patch(js, 'fit fov to the shorter axis',
+    '            cameraEntity.camera.horizontalFov = graphicsDevice.width > graphicsDevice.height;',
+    `            cameraEntity.camera.horizontalFov = globalThis.sse?.limits?.fitFov ?
+                graphicsDevice.width < graphicsDevice.height :
+                graphicsDevice.width > graphicsDevice.height;`);
+
 // Clicking the scene refocuses the orbit centre on the picked surface, which
 // moves the camera in and wrecks a fixed composition. This handler is the one
 // choke point for both routes into it (single click and double click), so
@@ -145,6 +159,7 @@ html = patch(html, 'parse limit params',
             const orbitOnly = url.searchParams.has('orbitOnly');
             const walkOnly = url.searchParams.has('walkOnly');
             const noPan = url.searchParams.has('noPan');
+            const fitFov = url.searchParams.has('fitFov');
             const autoOrbit = Number(url.searchParams.get('autoOrbit')) || 0;
             const autoOrbitDelay = Number(url.searchParams.get('autoOrbitDelay')) || 3000;
             const pinMode = orbitOnly ? 'orbit' : (walkOnly ? 'walk' : null);
@@ -163,6 +178,7 @@ html = patch(html, 'parse limit params',
                     orbitOnly,
                     walkOnly,
                     noPan,
+                    fitFov,
                     autoOrbit,
                     autoOrbitDelay,
                     pinMode,
@@ -255,4 +271,4 @@ await Promise.all([
     writeFile(join(dest, 'index.css'), await readFile(join(src, 'index.css')))
 ]);
 
-console.log('copied 3 viewer files to public/viewer/ (9 patches applied)');
+console.log('copied 3 viewer files to public/viewer/ (10 patches applied)');

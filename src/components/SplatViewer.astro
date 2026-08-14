@@ -36,6 +36,14 @@ interface Props {
      */
     noPan?: boolean;
     /**
+     * Keep the whole subject in frame at any aspect ratio. By default the
+     * viewer puts settings.json's fov on the longer viewport axis, so a box
+     * taller than it is wide - a phone, or a column that has stacked - crops
+     * the subject sideways. This puts the fov on the shorter axis instead, so
+     * the saved pose is the tightest framing and narrow screens only widen it.
+     */
+    fitFov?: boolean;
+    /**
      * Turn the camera at this many degrees per second once the viewer has been
      * idle, and hand back the moment someone drags. Omit for a still camera.
      */
@@ -66,6 +74,7 @@ const {
     walkOnly,
     noIntro,
     noPan,
+    fitFov,
     autoOrbit,
     autoOrbitDelay,
     collision,
@@ -89,6 +98,7 @@ const query = new URLSearchParams({
     ...(walkOnly ? { walkOnly: '' } : {}),
     ...(noIntro ? { noIntro: '' } : {}),
     ...(noPan ? { noPan: '' } : {}),
+    ...(fitFov ? { fitFov: '' } : {}),
     ...(autoOrbit ? { autoOrbit: String(autoOrbit) } : {}),
     ...(autoOrbitDelay ? { autoOrbitDelay: String(autoOrbitDelay) } : {}),
     ...(collision ? { collision: `${splatBase}/${name}.voxel.json` } : {}),
