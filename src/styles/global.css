@@ -146,6 +146,19 @@ nav {
         grid-template-columns: 1fr;
         gap: 1.25rem;
     }
+
+    /* Stacked, the viewer no longer shares the fold with the product copy, so
+       60vh of it leaves the name and price below the screen edge. A squarer
+       box costs nothing here: the viewer fits its subject to the shorter axis
+       (SplatViewer's fitFov), so losing height widens the framing rather than
+       cropping it. */
+    .product .splat {
+        height: min(45vh, 22rem);
+        /* .splat's 360px floor is there to keep a full-bleed band from
+           collapsing into a letterbox; here it would just win over the line
+           above. */
+        min-height: 0;
+    }
 }
 
 .c1 {
