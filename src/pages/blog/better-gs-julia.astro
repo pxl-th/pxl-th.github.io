@@ -5,6 +5,16 @@ import { Code } from 'astro:components';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
+// npx -y @playcanvas/splat-transform@3.2.0 -w \
+//   /home/pxlth/GaussianSplattingModels/fountain-83k-mcmc.compressed.ply \
+//   public/splats/fountain.sog
+
+// npx -y @playcanvas/splat-transform@3.2.0 \
+//   public/splats/fountain.sog \
+//   --filter-box=-25,-15,-25,25,15,25 \
+//   --voxel-floor-fill \
+//   public/splats/fountain.voxel.json
+
 const mcmcExample = `Trainer(
     rasterizer, gaussians, dataset, opt_params;
     strategy=MCMCStrategy(; kwargs...),
@@ -19,7 +29,7 @@ const mcmcExample = `Trainer(
         </nav>
     </header>
     <SplatViewer
-        name="fountain"
+        name="fountain-2"
         title="Fountain — Gaussian splat scene"
         walkOnly
         collision
