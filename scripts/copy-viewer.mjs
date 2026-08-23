@@ -121,6 +121,37 @@ js = patch(js, 'fit fov to the shorter axis',
                 graphicsDevice.width < graphicsDevice.height :
                 graphicsDevice.width > graphicsDevice.height;`);
 
+// The walk rig - eye height, capsule, speeds, gravity - is hardcoded in metres
+// in src/cameras/walk-controller.ts, so a scene whose world unit is not a metre
+// walks like a child (or a giant). Every field is public, and this is the only
+// place the instance is reachable, so scale the whole rig here from a `walk`
+// block in settings.json (which importSettings passes through untouched):
+//
+//   "walk": { "scale": 1.6 }              scale the rig to the scene's units
+//   "walk": { "scale": 1.6, "eyeHeight": 2.8 }   ... and override one field
+//
+// `scale` multiplies every length and speed. Gravity scales with them so a jump
+// keeps its arc and its airtime; the fields are read off the instance rather
+// than restated here, so upstream stays the source of truth for the defaults.
+// No `walk` block leaves the metric rig exactly as shipped.
+js = patch(js, 'walk rig scale',
+    `        controllers.walk.collision = collision;
+        const walkSource = new WalkSource();`,
+    `        controllers.walk.collision = collision;
+        const walkSource = new WalkSource();
+        const __walk = settings.walk;
+        if (__walk) {
+            const __scale = __walk.scale ?? 1;
+            for (const __key of [
+                'capsuleHeight', 'capsuleRadius', 'eyeHeight', 'hoverHeight',
+                'groundProbeRange', 'gravity', 'jumpSpeed', 'moveGroundSpeed',
+                'moveAirSpeed'
+            ]) {
+                controllers.walk[__key] = __walk[__key] ?? controllers.walk[__key] * __scale;
+            }
+            walkSource.walkSpeed = __walk.walkSpeed ?? walkSource.walkSpeed * __scale;
+        }`);
+
 // Clicking the scene refocuses the orbit centre on the picked surface, which
 // moves the camera in and wrecks a fixed composition. This handler is the one
 // choke point for both routes into it (single click and double click), so

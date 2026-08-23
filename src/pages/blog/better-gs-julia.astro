@@ -5,15 +5,25 @@ import { Code } from 'astro:components';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-// npx -y @playcanvas/splat-transform@3.2.0 -w \
-//   /home/pxlth/GaussianSplattingModels/fountain-83k-mcmc.compressed.ply \
-//   public/splats/fountain.sog
+// npx -y @playcanvas/splat-transform@3.3.0 -w \
+//   /home/pxlth/GaussianSplattingModels/fountain/improved-gs-30k-fixed-depth-supervision-rc.ply \
+//   public/splats/fountain-3.sog
 
-// npx -y @playcanvas/splat-transform@3.2.0 \
-//   public/splats/fountain.sog \
-//   --filter-box=-25,-15,-25,25,15,25 \
+// npx -y @playcanvas/splat-transform@3.3.0 \
+//   public/splats/fountain-3.sog \
+//   --filter-box=-40,-5,-40,40,25,40 \
 //   --voxel-floor-fill \
-//   public/splats/fountain.voxel.json
+//   --voxel-size 0.08 \
+//   public/splats/fountain-3.voxel.json
+
+// Both the box and the voxel size are the old fountain values (-25..25, 0.05)
+// times 1.6: this reconstruction lands about 1.6x metric, so the same physical
+// region and the same collision detail per human-sized step cost the same 9 MB
+// as before. The filter box is in viewer space (y up, x negated relative to the
+// .ply), and the ground sits at y = 0.4, hence the -5 rather than -40 floor.
+// The same 1.6 is settings.json's "walk": { "scale": 1.6 }, which scales the
+// walk rig - eye height, capsule, speeds, gravity - out of metres and into this
+// scene's units. See the 'walk rig scale' patch in scripts/copy-viewer.mjs.
 
 const mcmcExample = `Trainer(
     rasterizer, gaussians, dataset, opt_params;
@@ -29,7 +39,7 @@ const mcmcExample = `Trainer(
         </nav>
     </header>
     <SplatViewer
-        name="fountain-2"
+        name="fountain-3"
         title="Fountain — Gaussian splat scene"
         walkOnly
         collision
