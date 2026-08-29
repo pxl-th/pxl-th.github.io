@@ -4,6 +4,7 @@ dist/
 public/viewer/
 # splat assets - hosted on R2, kept locally for development
 public/splats/*.sog
+public/splats/*.ply
 public/splats/*.voxel.json
 public/splats/*.voxel.bin
 # generated types

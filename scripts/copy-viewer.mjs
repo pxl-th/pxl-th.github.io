@@ -150,7 +150,43 @@ js = patch(js, 'walk rig scale',
                 controllers.walk[__key] = __walk[__key] ?? controllers.walk[__key] * __scale;
             }
             walkSource.walkSpeed = __walk.walkSpeed ?? walkSource.walkSpeed * __scale;
+            controllers.walk.bounds = __walk.bounds ?? null;
         }`);
+
+// Nothing bounds walk mode: _step moves _position freely, so an open scene like
+// a square lets you walk out past the reconstruction into the far-field mush
+// and never come back. Collision data is no answer - a tighter --filter-box
+// just removes the floor, so you fall through the edge instead of stopping at
+// it. So clamp the walker to a box from settings.json:
+//
+//   "walk": { "bounds": [minX, minZ, maxX, maxZ] }
+//
+// In world units and in viewer space, the same space as the voxel json's
+// gridBounds, so those are the outer limit worth using. Only x and z: y belongs
+// to gravity and the ground probe. Clamping inside the substep loop rather than
+// after it keeps _prevPosition and the render-rate lerp below consistent, and
+// zeroing the velocity component on contact stops momentum building against the
+// wall and lurching when you turn away. No `bounds` leaves movement unbounded.
+js = patch(js, 'walk bounds',
+    `                this._prevPosition.copy(this._position);
+                this._step(FIXED_DT, moveStep);
+                this._accumulator -= FIXED_DT;`,
+    `                this._prevPosition.copy(this._position);
+                this._step(FIXED_DT, moveStep);
+                const __bounds = this.bounds;
+                if (__bounds) {
+                    const __x = Math.min(Math.max(this._position.x, __bounds[0]), __bounds[2]);
+                    const __z = Math.min(Math.max(this._position.z, __bounds[1]), __bounds[3]);
+                    if (__x !== this._position.x) {
+                        this._position.x = __x;
+                        this._velocity.x = 0;
+                    }
+                    if (__z !== this._position.z) {
+                        this._position.z = __z;
+                        this._velocity.z = 0;
+                    }
+                }
+                this._accumulator -= FIXED_DT;`);
 
 // Clicking the scene refocuses the orbit centre on the picked surface, which
 // moves the camera in and wrecks a fixed composition. This handler is the one
@@ -164,6 +200,83 @@ js = patch(js, 'suppress click-to-refocus',
             if (globalThis.sse?.limits?.pinMode) return;
             // switch to orbit camera on pick
             state.cameraMode = 'orbit';`);
+
+// The viewer hardcodes the unified gsplat path, which re-encodes every splat
+// into a shared work buffer and drives it through the LOD director. That
+// re-encode quantises colour, rotation and scale, and the path culls every
+// splat under a 2px screen radius before the rasterizer sees it, so a scene
+// renders soft and z-fights along surfaces however good the source file is -
+// feeding it a .ply rather than a .sog changes nothing, because the loss is
+// downstream of the parser. The SuperSplat editor renders the same files
+// through the classic path instead - a GSplatInstance with its own material and
+// its own sorter, reading the resource textures directly - which is why a .sog
+// that looks wrong here looks right there.
+//
+// The component supports both; only the viewer's choice is fixed. The classic
+// path also sorts by planar depth unconditionally (its worker keys on
+// x*dx + y*dy + z*dz), which is the order the scene was trained in.
+js = patch(js, 'classic gsplat path',
+    `            entity.addComponent('gsplat', {
+                unified: true,
+                asset
+            });`,
+    `            entity.addComponent('gsplat', {
+                unified: !globalThis.sse?.limits?.classic,
+                asset
+            });`);
+
+// Two things the classic path needs that only the unified path sets up.
+//
+// Culling: GSplatInstance draws the whole splat set as instances of one shared
+// quad, so the mesh instance's own aabb is meaningless, and `set instance`
+// hands setCustomAabb the raw _customAabb field - null unless a caller filled
+// it in, which the viewer never does because the unified path takes its bounds
+// from _placement.aabb instead. The mesh instance therefore fails _isVisible,
+// which deadlocks it: cullComposition only pushes a camera onto
+// gsplatInstance.cameras for draw calls that pass, and without a camera the
+// sorter never runs, so instancingCount stays 0 and nothing is ever drawn.
+// resource.aabb is what the component's own customAabb getter falls back to, so
+// handing it to the mesh instance is the fix the accessor already implies. It
+// is a loose bound - a handful of outlier gaussians put its centre 1.1M units
+// out with 1.9M half-extents - which costs nothing here: the draw call is the
+// whole scene and always in view, so it should never be culled anyway.
+//
+// The instance exists by now - addComponent runs _onGSplatAssetLoad
+// synchronously when the asset already carries its resource, which it does.
+js = patch(js, 'classic path instance fixups',
+    `            app.root.addChild(entity);
+            resolve(entity);`,
+    `            if (globalThis.sse?.limits?.classic) {
+                const __mi = entity.gsplat.instance?.meshInstance;
+                if (__mi) {
+                    __mi.setCustomAabb(entity.gsplat.resource?.aabb ?? null);
+                }
+            }
+            app.root.addChild(entity);
+            resolve(entity);`);
+
+// frame:ready is fired by the unified director alone, and the viewer hangs its
+// whole reveal on it: hiding the loading screen, dropping to on-demand
+// rendering, and applying the perf settings. On the classic path it never
+// fires, so the scene would load and then sit behind the loading bar forever.
+//
+// The reveal is reinstated directly instead. Everything else readyHandler does
+// is unified-only and simply does not apply: applyPerfSettings writes to
+// app.scene.gsplat (budget, LOD range, work-buffer culls) which the classic
+// instance never reads, and gsplat.renderer selects between the unified GPU and
+// CPU sorters where the classic path always uses its own. app.autoRender is
+// left at the true it was given at startup, because frame:request is likewise
+// a unified signal - the classic path just renders every frame.
+js = patch(js, 'classic path reveal',
+    `            eventHandler.on('frame:ready', readyHandler);`,
+    `            if (globalThis.sse?.limits?.classic) {
+                app.once('frameend', () => {
+                    events.fire('firstFrame');
+                    window.firstFrame?.();
+                });
+            } else {
+                eventHandler.on('frame:ready', readyHandler);
+            }`);
 
 // --- index.html -------------------------------------------------------------
 
@@ -192,6 +305,12 @@ html = patch(html, 'parse limit params',
             const noPan = url.searchParams.has('noPan');
             const fitFov = url.searchParams.has('fitFov');
             const noControls = url.searchParams.has('noControls');
+            // Undo the viewer's quality-for-speed trades: an exact work buffer
+            // and no per-frame culling. Costs fill rate and bandwidth, so it is
+            // opt-in per embed. See the two 'high quality' patches above.
+            // Render through the classic per-splat path rather than the
+            // unified work buffer - what the SuperSplat editor does.
+            const classic = url.searchParams.has('classic');
             const autoOrbit = Number(url.searchParams.get('autoOrbit')) || 0;
             const autoOrbitDelay = Number(url.searchParams.get('autoOrbitDelay')) || 3000;
             const pinMode = orbitOnly ? 'orbit' : (walkOnly ? 'walk' : null);
@@ -215,6 +334,7 @@ html = patch(html, 'parse limit params',
                     noPan,
                     fitFov,
                     noControls,
+                    classic,
                     autoOrbit,
                     autoOrbitDelay,
                     pinMode,
@@ -317,4 +437,4 @@ await Promise.all([
     writeFile(join(dest, 'index.css'), await readFile(join(src, 'index.css')))
 ]);
 
-console.log('copied 3 viewer files to public/viewer/ (10 patches applied)');
+console.log('copied 3 viewer files to public/viewer/ (17 patches applied)');

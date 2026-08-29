@@ -6,7 +6,7 @@
 // iframe rather than being rendered inline.
 //
 // Each scene is a pair of files named after `name`:
-//   <name>.sog           the splat data, large - served from PUBLIC_SPLAT_BASE
+//   <name>.<format>      the splat data, large - served from PUBLIC_SPLAT_BASE
 //   <name>.settings.json viewer config - always served from this site
 //
 // Only the big binary is hosted off-site; keeping settings in the repo means
@@ -16,6 +16,12 @@
 interface Props {
     name: string;
     title?: string;
+    /**
+     * Extension of the splat file. The viewer picks its parser off this, and
+     * reads both: 'sog' is the compressed bundle, 'ply' the raw Gaussians -
+     * same scene, but several times the download.
+     */
+    format?: 'sog' | 'ply';
     height?: string;
     /** Lock the camera to orbit: no fly/walk modes, no intro animation. */
     orbitOnly?: boolean;
@@ -59,7 +65,7 @@ interface Props {
     /**
      * Load <name>.voxel.json collision data, which unlocks walk mode. The
      * loader infers a companion <name>.voxel.bin by swapping the extension,
-     * so both files must sit alongside the .sog.
+     * so both files must sit alongside the splat file.
      */
     collision?: boolean;
     /** Elevation limits in degrees. Equal values lock the camera to one height. */
@@ -68,6 +74,16 @@ interface Props {
     yawRange?: [number, number];
     /** Orbit distance limits in world units (metres). */
     zoomRange?: [number, number];
+    /**
+     * Render through the classic per-splat path - a GSplatInstance with its own
+     * material and sorter, reading the resource textures directly - instead of
+     * the unified work buffer the viewer hardcodes. The unified path quantises
+     * colour, rotation and scale into its work buffer and culls sub-2px splats
+     * before the rasterizer sees them, which reads as a soft, z-fighting scene
+     * no matter how good the source file is. This is the path the SuperSplat
+     * editor uses. See scripts/copy-viewer.mjs.
+     */
+    classic?: boolean;
     /** Extra viewer URL params, e.g. { budget: '3' } to cap splat count. */
     params?: Record<string, string>;
 }
@@ -75,6 +91,7 @@ interface Props {
 const {
     name,
     title = 'Gaussian splat scene',
+    format = 'sog',
     height,
     orbitOnly,
     walkOnly,
@@ -85,6 +102,7 @@ const {
     autoOrbit,
     autoOrbitDelay,
     collision,
+    classic,
     pitchRange,
     yawRange,
     zoomRange,
@@ -99,7 +117,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const splatBase = (import.meta.env.PUBLIC_SPLAT_BASE || `${base}/splats`).replace(/\/$/, '');
 
 const query = new URLSearchParams({
-    content: `${splatBase}/${name}.sog`,
+    content: `${splatBase}/${name}.${format}`,
     settings: `${base}/splats/${name}.settings.json`,
     ...(orbitOnly ? { orbitOnly: '' } : {}),
     ...(walkOnly ? { walkOnly: '' } : {}),
@@ -110,6 +128,7 @@ const query = new URLSearchParams({
     ...(autoOrbit ? { autoOrbit: String(autoOrbit) } : {}),
     ...(autoOrbitDelay ? { autoOrbitDelay: String(autoOrbitDelay) } : {}),
     ...(collision ? { collision: `${splatBase}/${name}.voxel.json` } : {}),
+    ...(classic ? { classic: '' } : {}),
     ...(pitchRange ? { pitch: pitchRange.join(',') } : {}),
     ...(yawRange ? { yaw: yawRange.join(',') } : {}),
     ...(zoomRange ? { zoom: zoomRange.join(',') } : {}),

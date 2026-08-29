@@ -64,6 +64,67 @@ nav {
     border: 0;
 }
 
+/* Tryzub renders the letter A as the trident. It is a symbol font: its cmap is
+   a (3, 0) subtable covering all of U+F020..U+F0E8, so every ASCII character
+   maps into it and only A-H and T carry real outlines - everything else
+   resolves to .notdef. That means a browser will never fall back per-character
+   the way it would with a normal font, so this must only ever wrap the single
+   letter it has a glyph for, never a whole heading. */
+@font-face {
+    font-family: "Tryzub";
+    src: url("/fonts/Tryzub.ttf") format("truetype");
+    font-display: swap;
+}
+
+.tryzub {
+    font-family: "Tryzub";
+}
+
+/* Walkthrough layout: the viewer takes two thirds of the width, the copy one
+   third, and the pair fills the viewport under the header. Unlike .product this
+   is deliberately not capped to a reading width - the scene is the subject, and
+   capping it would letterbox the viewer on a wide monitor. The copy column is
+   padded instead, which keeps its measure tolerable without costing the viewer
+   any width. minmax(0, ...) is what lets either cell shrink below its content
+   rather than forcing the grid wider than the viewport. */
+.split {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    width: 100%;
+    /* 3rem is the header: 1.5rem of padding plus its one line of nav. */
+    height: calc(100svh - 3rem);
+    border-top: 1px solid rgba(46, 42, 36, 0.15);
+}
+
+/* Inside a grid cell the viewer already has its width, so it only needs to give
+   up the full-bleed band's fixed height, its 360px floor and its own borders -
+   the .split border above and the column rule below frame it instead. */
+.split .splat {
+    height: 100%;
+    min-height: 0;
+    border: 0;
+}
+
+/* Scrolls on its own, so however long the copy runs it never pushes the viewer
+   off the fold or introduces a page scrollbar. */
+.split-copy {
+    overflow-y: auto;
+    padding: 1.5rem;
+    border-left: 1px solid rgba(46, 42, 36, 0.15);
+}
+
+.split-copy h1 {
+    margin: 0 0 0.25rem;
+    font-size: 2rem;
+    font-weight: normal;
+}
+
+/* The trident stands alone above the date, so it is centred on the column
+   rather than ranged left with the prose under it. */
+.split-copy h2 {
+    text-align: center;
+}
+
 /* Store layout: viewer beside the product copy. Wider than .post's 42rem,
    which is a measure tuned for prose, but still capped so the two columns
    stay a readable pair on a large monitor. */
@@ -142,6 +203,23 @@ nav {
 /* Two columns run out of room well before the 30rem breakpoint below - the
    copy column hits its min-content width first - so the store stacks earlier. */
 @media (max-width: 48rem) {
+    /* Stacked, a viewport-height viewer would leave nothing but the viewer on
+       the fold, so it gives back enough room for the copy to start on screen.
+       Height goes to auto so the copy is only as tall as it needs to be. */
+    .split {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .split .splat {
+        height: 60svh;
+    }
+
+    .split-copy {
+        border-left: 0;
+        border-top: 1px solid rgba(46, 42, 36, 0.15);
+    }
+
     .product {
         grid-template-columns: 1fr;
         gap: 1.25rem;
