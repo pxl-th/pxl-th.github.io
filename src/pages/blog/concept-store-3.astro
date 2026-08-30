@@ -1,0 +1,119 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SplatViewer from '../../components/SplatViewer.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// public/splats/candle-1.sog is gitignored like the other splats, so the
+// command that produced it lives here - it is the only record of how the scan was cleaned up:
+//
+// npx @playcanvas/splat-transform@3.3.0 /home/pxlth/GaussianSplattingModels/candle-1/candle-cleaned.ply public/splats/candle-1.sog --overwrite
+//
+// Unlike the cup and the bowl these were not passed -t, so they still sit
+// where the reconstruction left them: the cameras in candle-1.settings.json and
+// candle-2.settings.json orbit each cloud's centre rather than the origin.
+//
+// candle-1 is the candle in its closed box, candle-2 the same candle lit; the
+// button under the viewer swaps between them.
+---
+
+<Layout title="Concept Store">
+    <header>
+        <nav>
+            <a href={`${base}/`}>main</a>
+            <a href={`${base}/blog`}>blog</a>
+        </nav>
+    </header>
+    <div class="content">
+        <div class="product">
+            <div class="product-view">
+                <SplatViewer
+                    name="candle-1"
+                    title="Candle — Gaussian splat scene"
+                    orbitOnly
+                    noPan
+                    fitFov
+                    noControls
+                    autoOrbit={10}
+                    autoOrbitDelay={1000}
+                    zoomRange={[20, 40]}
+                    pitchRange={[-70, -15]}
+                />
+                <button class="scene-toggle" type="button" data-scene="candle-1">Open Box</button>
+            </div>
+            <div class="product-info">
+                <h1>Eggs Candles</h1>
+                <p class="product-meta">
+                reconstructed with <a href="better-gs-julia/" target="_blank" rel="noopener">GaussianSplatting.jl</a><br>
+                drag to rotate
+                </p>
+
+                <p>🥚🕯️</p>
+
+                <p>
+                here goes the description<br>
+                .........................<br>
+                .........................<br>
+                .........................<br>
+                .........................<br>
+                .......end of description
+                </p>
+
+                <p>
+                product info:
+                </p>
+
+                <p>
+                ⧖ burning time: the number<br>
+                [ height: the number<br>
+                ⊥ weight: the number
+                </p>
+
+                <p class="price">₴ the number</p>
+
+                <button class="buy" type="button">buy</button>
+                <p class="buy-note" hidden>
+                this is a *concept*<br>
+                go to the real <a href="https://sabisabisabisabi.com/en/" target="_blank" rel="noopener">store</a>
+                </p>
+
+                <p class="product-back">
+                    <a href={`${base}/blog`}>← back</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    // The store is a mock-up; the button only owns up to that.
+    const buy = document.querySelector<HTMLButtonElement>('.buy');
+    const note = document.querySelector<HTMLParagraphElement>('.buy-note');
+
+    buy?.addEventListener('click', () => {
+        if (note) note.hidden = false;
+        buy.disabled = true;
+    });
+
+    // The two scans are the same viewer URL with a different scene name in the
+    // content and settings params, so swapping them is a string replace and a
+    // reload of the iframe - cheaper than parking a second viewer offscreen,
+    // which would download the other scene whether or not anyone asked for it.
+    const toggle = document.querySelector<HTMLButtonElement>('.scene-toggle');
+    const frame = document.querySelector<HTMLIFrameElement>('.product-view iframe');
+
+    const labels: Record<string, string> = {
+        'candle-1': 'Open Box',
+        'candle-3': 'Close Box'
+    };
+
+    toggle?.addEventListener('click', () => {
+        if (!frame) return;
+        const from = toggle.dataset.scene === 'candle-3' ? 'candle-3' : 'candle-1';
+        const to = from === 'candle-1' ? 'candle-3' : 'candle-1';
+
+        frame.src = frame.src.split(from).join(to);
+        toggle.dataset.scene = to;
+        toggle.textContent = labels[to];
+    });
+</script>

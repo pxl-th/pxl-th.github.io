@@ -165,10 +165,20 @@ nav {
     color: #2e2a24;
 }
 
-/* Buttons appear nowhere else on the site, so this borrows the flat bordered
-   tint of inline code rather than introducing a shadowed control. Font has to
-   be set explicitly - form elements do not inherit it. */
-.buy {
+/* The viewer and the button that swaps its scene share the grid's first
+   column, so they stack instead of the button landing in the copy column. */
+.product-view {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+/* Buttons appear only in the store, so these borrow the flat bordered tint of
+   inline code rather than introducing a shadowed control. Font has to be set
+   explicitly - form elements do not inherit it. */
+.buy,
+.scene-toggle {
     font-family: inherit;
     font-size: 1rem;
     color: #2e2a24;
@@ -179,7 +189,8 @@ nav {
     cursor: pointer;
 }
 
-.buy:hover:not(:disabled) {
+.buy:hover:not(:disabled),
+.scene-toggle:hover {
     color: #4a7c3f;
     border-color: #4a7c3f;
 }
